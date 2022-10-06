@@ -11,8 +11,11 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 new_model = gensim.models.Word2Vec.load("gensim-model-sdp1twev")
 
-wv = new_model.wv
+wv = api.load('word2vec-google-news-300')
 
+#wv = new_model.wv
+
+wv.evaluate_word_pairs(datapath('wordsim353.tsv'))
 
 print(wv.most_similar(positive=['sick'], topn=100))
 
