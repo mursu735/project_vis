@@ -18,6 +18,8 @@ print(wv.most_similar(positive=['sick'], topn=100))
 
 #word_list = ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
 word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea", "lymph node"]
+# Pairwise distance between symptoms
+# Graph renderding, networkx
 
 with open('MC_1_Materials_3-30-2011/Microblogs.csv') as csvfile:
     reader = pd.read_csv(csvfile, sep=",", header=0, usecols=["Created_at", "text", "Location"])
