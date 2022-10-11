@@ -3,24 +3,44 @@ import gensim.downloader as api
 from gensim.test.utils import datapath
 from gensim import utils
 import gensim.models
-import tempfile
+import plotly.express as px
+from skimage import io
+import plotly.graph_objects as go
+import fetch_model_name
+
 
 import pandas as pd
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
 
-new_model = gensim.models.Word2Vec.load("gensim-model-sdp1twev")
+model_name = fetch_model_name.fetch_model_name()
 
-wv = api.load('word2vec-google-news-300')
+print(model_name)
 
-#wv = new_model.wv
+new_model = gensim.models.Word2Vec.load(f"gensim-model-{model_name}")
 
-wv.evaluate_word_pairs(datapath('wordsim353.tsv'))
+#wv = api.load('word2vec-google-news-300')
+
+wv = new_model.wv
+
+#wv.evaluate_word_pairs('MC_1_Materials_3-30-2011/Microblogs.csv')
 
 print(wv.most_similar(positive=['sick'], topn=100))
 
 #word_list = ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
-word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea", "lymph node"]
+#word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea", "lymph node"]
+word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea"]
+
+word_distances = {}
+
+for i in range(0, len(word_list)):
+    for j in range(i+1, len(word_list)):
+        word = f"{word_list[i]} -> {word_list[j]}"
+        diff = wv.similarity(word_list[i], word_list[j])
+        word_distances[word] = diff
+
+print(word_distances)
+        
 # Pairwise distance between symptoms
 # Graph renderding, networkx
 
