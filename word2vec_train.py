@@ -56,7 +56,11 @@ with open("words.txt", "w") as file:
 
 with tempfile.NamedTemporaryFile(prefix='gensim-model-', delete=False) as tmp:
     temporary_filepath = tmp.name
+    split = temporary_filepath.split('/')
+    temporary_filepath = split[-1]
     model.save(temporary_filepath)
+    with open("model_name.txt", "w") as file:
+        file.write(temporary_filepath)
     #
     # The model is now safely stored in the filepath.
     # You can copy it to other machines, share it with others, etc.

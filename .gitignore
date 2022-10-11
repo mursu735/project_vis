@@ -1,2 +1,5 @@
-MC_Materials*
+MC_1_Materials_3-30-2011/
 *.txt
+__pycache__/
+gensim-model*
+.DS_Store
