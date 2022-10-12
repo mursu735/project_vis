@@ -41,7 +41,7 @@ print(model_name)
 
 new_model = gensim.models.Word2Vec.load(f"gensim-model-{model_name}")
 
-#wv = api.load('word2vec-google-news-300')t
+#wv = api.load('word2vec-google-news-300')
 
 
 wv = new_model.wv
