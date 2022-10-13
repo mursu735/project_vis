@@ -3,8 +3,11 @@ from matplotlib import pyplot as plt
 import plotly.express as px
 from skimage import io
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import plotly.offline as py
 import re
-import datetime
+from datetime import datetime
+from PIL import Image
 
 north_end = 42.3017
 west_start = 93.5673
@@ -49,7 +52,8 @@ with open("filtered_coords.txt") as file:
         line = line.replace("\n", "")
         #If we reach a new day, create a new entry to dict
         if pattern.match(line):
-            dates.append(line)
+            # Add leading zero to day and month, makes sorting easier
+            dates.append(datetime.strptime(line, '%m/%d/%Y').strftime('%m/%d/%Y'))
             counter += 1
             x_arr.append([])
             y_arr.append([])
@@ -63,19 +67,69 @@ with open("filtered_coords.txt") as file:
         y_arr[counter].append(y_interpolate)
 
 print(dates)
+print(type(dates[0]))
 
-sorted = dates.sort(key=lambda date: datetime.datetime.strptime(date, "%#m/%#d/%Y"))
+sorted = sorted(dates, key=lambda date: datetime.strptime(date, "%m/%d/%Y"))
 
-print(sorted)
+# Create a subplot for each day's comments
+fig = make_subplots(rows=7, cols=3)
 
-#Sort times, get the original index, visualize each day separately
+row = 0
+col = 0
 
-img = io.imread('MC_1_Materials_3-30-2011/Vastopolis_Map.png')
-fig = px.imshow(img)
-"""
-fig.add_trace(
-    go.Scatter(x=x_arr, y=y_arr, mode="markers")
-)
-"""
+for date in sorted:
+    index = dates.index(date)
+    x = x_arr[index]
+    y = y_arr[index]
+    fig.add_trace(go.Scatter(
+                    x=x,
+                    y=y,
+                    mode="markers", 
+                    name=date,
+                    marker=dict(
+                        size=2
+                    )), 
+                    row=row+1, col=col+1)
+    # Move through columns (x) first, once we reach the final, move to another row
+    col = (col + 1) % 3
+    if col == 0:
+        row = (row + 1) % 7
 
 fig.show()
+
+
+many_comments = ["05/18/2011", "05/19/2011", "05/20/2011"]
+img = io.imread('MC_1_Materials_3-30-2011/Vastopolis_Map.png')
+
+for date in many_comments:
+    fig2 = px.imshow(img)
+    index = dates.index(date)
+    fig2.add_trace(
+        go.Scatter(
+            x=x_arr[index],
+            y=y_arr[index],
+            mode="markers",
+            marker=dict(
+                size=3
+            )
+        )
+    )
+    fig2.update_layout(title=f"Comments for date: {date}")
+    
+    fig2.show()
+
+#fig.show()
+'''
+fig = px.imshow(img)
+
+fig.add_trace(
+    go.Scatter(
+            x=x_arr[0],
+            y=y_arr[0],
+            mode="markers",
+            marker=dict(
+                size=2
+            ))
+)
+fig.show()
+'''

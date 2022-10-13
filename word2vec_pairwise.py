@@ -65,9 +65,23 @@ asd = list(word_distances.values())
 # make in networkx
 fig = go.Figure()
 
+G = nx.Graph()
+
+for i in range(0, len(labels)):
+    G.add_node(labels[i], pos=(x_vals[i], y_vals[i]))
+
+print(G.nodes().data())
+
+node_x = []
+node_y = []
+for node in G.nodes():
+    x, y = G.nodes[node]['pos']
+    node_x.append(x)
+    node_y.append(y)
+
 #trace = go.Scatter(x=x_vals, y=y_vals, mode='text', text=labels)
 fig.add_trace(
-    go.Scatter(x=x_vals, y=y_vals, mode="markers", text=labels)
+    go.Scatter(x=node_x, y=node_y, mode="markers+text", text=labels, textposition="top center")
 )
 
 fig.show()
