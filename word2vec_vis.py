@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 import plotly.express as px
 from skimage import io
@@ -47,6 +48,7 @@ y_arr = []
 dates = []
 counter = -1
 pattern = re.compile("^[4-5]\/[0-3]?[0-9]\/2011$")
+'''
 with open("filtered_coords.txt") as file:
     for line in file.readlines():
         line = line.replace("\n", "")
@@ -119,7 +121,7 @@ for date in many_comments:
     fig2.show()
 
 #fig.show()
-'''
+
 fig = px.imshow(img)
 
 fig.add_trace(
@@ -133,3 +135,52 @@ fig.add_trace(
 )
 fig.show()
 '''
+counts = {}
+times = []
+
+with open("filtered2.txt") as file:
+    for line in file.readlines():
+        line = line.replace("\n", "")
+        time = datetime.strptime(line, '%m/%d/%Y %H:%M').replace(minute=0)
+        times.append(time)
+        if time not in counts:
+            counts[time] = 1
+        else:
+            counts[time] += 1
+
+row = 0
+
+#Put coordinates into pandas dataframe
+coords_map = pd.DataFrame(columns=["date", "x", "y"])
+
+with open("filtered_coords.txt") as file:
+    for line in file.readlines():
+        line = line.replace("\n", "")
+        time = times[row]
+        # Match coordinate and time, use the previously read times as guidance
+        coords = line.split(" ")
+        x = float(coords[0])
+        y = float(coords[1])
+        x_interpolate = ((x - north_start) / (north_end - north_start)) * width
+        y_interpolate = ((y - west_start) / (west_end - west_start)) * height
+        coords_map.loc[len(coords_map.index)] = [time, x_interpolate, y_interpolate] 
+        row += 1
+        
+print(type(coords_map.items()))
+sorted = sorted(counts.items())
+
+coords_map.sort_values(by=['date'])
+print(coords_map)
+#print(type(sorted[0]))
+
+x = [tup[0] for tup in sorted]
+y = [tup[1] for tup in sorted]
+
+fig.add_trace(go.Bar(
+    x=x,
+    y=y
+))
+
+fig.show()
+
+

@@ -67,7 +67,8 @@ print(word_distances)
 asd = list(word_distances.values())
 # TODO:
 # Add more words
-# Spot the exact time and location for outbreak start
+# Spot the exact time (DONE) and location for outbreak start (Add animation for outbreak)
+# Check for more symptoms
 # Heatmap of features, similarity of similarity; create a vector of similarity for all symptoms, then compare the similarity of those vectors
 # Self organized map
 

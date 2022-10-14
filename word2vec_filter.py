@@ -27,7 +27,7 @@ wv = new_model.wv
 
 print(wv.most_similar(positive=['sick'], topn=100))
 
-word_list = ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
+word_list = ["pains", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
 #word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea", "lymph node"]
 #word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea"]
 
@@ -43,7 +43,7 @@ print(word_distances)
         
 # Pairwise distance between symptoms
 # Graph renderding, networkx
-
+'''
 with open('MC_1_Materials_3-30-2011/Microblogs.csv') as csvfile:
     reader = pd.read_csv(csvfile, sep=",", header=0, usecols=["Created_at", "text", "Location"])
     converted = reader.text.to_list()
@@ -62,18 +62,39 @@ with open('MC_1_Materials_3-30-2011/Microblogs.csv') as csvfile:
                 lines[time] = []
             coords[time].append(row["Location"])
             lines[time].append(row["text"])
+'''
+
+with open('MC_1_Materials_3-30-2011/Microblogs.csv') as csvfile:
+    reader = pd.read_csv(csvfile, sep=",", header=0, usecols=["Created_at", "text", "Location"])
+    converted = reader.text.to_list()
+    coords = []
+    lines = []
+    print(reader)
+    for index, row in reader.iterrows():
+        #print(row)
+        #print(row["Created_at"])
+        split = row["Created_at"].split(" ")
+        time = split[0]
+        # "5/18/2011" in row["Created_at"] and
+        if any(substring in row["text"] for substring in word_list):
+            coords.append(row["Location"])
+            lines.append(row["Created_at"])
 
 
 with open("filtered2.txt", "w") as file:
-    for key, val in lines.items():
-        file.write(f"{key}\n")
+    for line in lines:
+        file.write(f"{line}\n")
+        '''
         for line in val:
             file.write(f"{line}\n")
+            '''
 
 with open("filtered_coords.txt", "w") as file:
-    for key, val in coords.items():
-        file.write(f"{key}\n")
+    for line in coords:
+        file.write(f"{line}\n")
+        '''
         for line in val:
             file.write(f"{line}\n")
+            '''
 
 print(f"Remaining number of messages: {len(lines)}")
