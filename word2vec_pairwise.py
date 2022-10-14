@@ -47,6 +47,8 @@ new_model = gensim.models.Word2Vec.load(f"gensim-model-{model_name}")
 wv = new_model.wv
 
 word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea"]
+#word_list = ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
+
 
 x_vals, y_vals, labels = reduce_dimensions(wv, word_list)
 
@@ -60,9 +62,15 @@ for i in range(0, len(word_list)):
         diff = wv.similarity(word_list[i], word_list[j])
         word_distances[word] = diff
 
+print(word_distances)
 
 asd = list(word_distances.values())
-# make in networkx
+# TODO:
+# Add more words
+# Spot the exact time and location for outbreak start
+# Heatmap of features, similarity of similarity; create a vector of similarity for all symptoms, then compare the similarity of those vectors
+# Self organized map
+
 fig = go.Figure()
 
 G = nx.Graph()
