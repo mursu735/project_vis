@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.offline as py
 import re
+import base64
 from datetime import datetime
 from PIL import Image
 
@@ -17,6 +18,7 @@ west_end = 93.1923
 
 width = 5216
 height = 2653
+image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map.png"
 
 """
 #plt.rcParams["figure.figsize"] = [7.00, 3.50]
@@ -137,6 +139,7 @@ fig.show()
 '''
 counts = {}
 times = []
+unique_times = []
 
 with open("filtered2.txt") as file:
     for line in file.readlines():
@@ -145,6 +148,7 @@ with open("filtered2.txt") as file:
         times.append(time)
         if time not in counts:
             counts[time] = 1
+            unique_times.append(time)
         else:
             counts[time] += 1
 
@@ -164,27 +168,29 @@ with open("filtered_coords.txt") as file:
         x_interpolate = ((x - north_start) / (north_end - north_start)) * width
         y_interpolate = ((y - west_start) / (west_end - west_start)) * height
         if time not in coords_map:
-            coords_map[time] = []
-        coords_map[time].append({"x": x_interpolate, "y": y_interpolate}) 
+            coords_map[time] = {"x": [], "y": []}
+        coords_map[time]["x"].append(x_interpolate)
+        coords_map[time]["y"].append(y_interpolate)
         row += 1
 
 
-sorted = sorted(counts.items())
-print(sorted)
+sorted_counts = sorted(counts.items())
+# print(sorted)
+unique_times_sorted = sorted(unique_times)
+#print(asd)
 
+#sorted_coords = sorted(coords_map.items())
+#print(coords_map)
 
-sorted_coords = sorted(coords_map.items())
-print(sorted_coords)
-
-asd = pd.DataFrame.from_dict(coords_map)
-print(asd)
+#asd = pd.DataFrame.from_dict(coords_map)
+#print(asd)
 
 #coords_map.sort_values(by=['date'])
 #print(coords_map)
 #print(type(sorted[0]))
 
-x = [tup[0] for tup in sorted]
-y = [tup[1] for tup in sorted]
+x = [tup[0] for tup in sorted_counts]
+y = [tup[1] for tup in sorted_counts]
 
 fig.add_trace(go.Bar(
     x=x,
@@ -192,5 +198,3 @@ fig.add_trace(go.Bar(
 ))
 
 fig.show()
-
-
