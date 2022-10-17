@@ -150,8 +150,8 @@ with open("filtered2.txt") as file:
 
 row = 0
 
-#Put coordinates into pandas dataframe
-coords_map = pd.DataFrame(columns=["date", "x", "y"])
+#Dict, key is time, value is array of coordinates, iterate through sorted list of times, access dict with them, use Frames
+coords_map = {}
 
 with open("filtered_coords.txt") as file:
     for line in file.readlines():
@@ -163,14 +163,24 @@ with open("filtered_coords.txt") as file:
         y = float(coords[1])
         x_interpolate = ((x - north_start) / (north_end - north_start)) * width
         y_interpolate = ((y - west_start) / (west_end - west_start)) * height
-        coords_map.loc[len(coords_map.index)] = [time, x_interpolate, y_interpolate] 
+        if time not in coords_map:
+            coords_map[time] = []
+        coords_map[time].append({"x": x_interpolate, "y": y_interpolate}) 
         row += 1
-        
-print(type(coords_map.items()))
-sorted = sorted(counts.items())
 
-coords_map.sort_values(by=['date'])
-print(coords_map)
+
+sorted = sorted(counts.items())
+print(sorted)
+
+
+sorted_coords = sorted(coords_map.items())
+print(sorted_coords)
+
+asd = pd.DataFrame.from_dict(coords_map)
+print(asd)
+
+#coords_map.sort_values(by=['date'])
+#print(coords_map)
 #print(type(sorted[0]))
 
 x = [tup[0] for tup in sorted]
