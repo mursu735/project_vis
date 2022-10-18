@@ -45,7 +45,7 @@ with open("filtered2.txt") as file:
 
 row = 0
 
-#Dict, key is time, value is array of coordinates, iterate through sorted list of times, access dict with them, use Frames
+#Dict, key is time, value is {x: [], y: []}, iterate through sorted list of times, access dict with them, use Frames
 coords_map = {}
 
 with open("filtered_coords.txt") as file:
@@ -112,8 +112,8 @@ sliders_dict = {
         "visible": True,
         "xanchor": "right"
     },
-    "transition": {"duration": 300, "easing": "cubic-in-out"},
-    "pad": {"b": 10, "t": 50},
+    "transition": {"duration": 1000, "easing": "cubic-in-out"},
+    "pad": {"b": 10, "t": 100},
     "len": 0.9,
     "x": 0.1,
     "y": 0,
@@ -132,6 +132,14 @@ data_dict = {
 
 fig_dict["data"].append(data_dict)
 
+print(unique_times_sorted)
+
+start_time = datetime(2011, 5, 18, 0, 0)
+
+unique_times_sorted = unique_times_sorted[unique_times_sorted.index(start_time):]
+
+print(unique_times_sorted)
+
 for time in unique_times_sorted:
     name = time.strftime('%m/%d/%Y %H:%M')
     frame = {"data": [], "name": name}
@@ -149,9 +157,9 @@ for time in unique_times_sorted:
     fig_dict["frames"].append(frame)
     slider_step = {"args": [
         [name],
-        {"frame": {"duration": 300, "redraw": False},
+        {"frame": {"duration": 1000, "redraw": False},
          "mode": "immediate",
-         "transition": {"duration": 300}}
+         "transition": {"duration": 1000}}
     ],
         "label": name,
         "method": "animate"}
@@ -164,7 +172,8 @@ fig2 = go.Figure(fig_dict)
 map_plot = base64.b64encode(open(image_filename, 'rb').read())
 
 fig2.update_layout(
-                images= [dict(
+                title = "Animation of message locations for each hour",
+                images = [dict(
                     source='data:image/png;base64,{}'.format(map_plot.decode()),
                     xref="paper", yref="paper",
                     x=0, y=0,
