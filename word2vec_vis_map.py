@@ -113,7 +113,7 @@ sliders_dict = {
         "xanchor": "right"
     },
     "transition": {"duration": 1000, "easing": "cubic-in-out"},
-    "pad": {"b": 10, "t": 100},
+    "pad": {"b": 100, "t": 100},
     "len": 0.9,
     "x": 0.1,
     "y": 0,
@@ -134,7 +134,7 @@ fig_dict["data"].append(data_dict)
 
 print(unique_times_sorted)
 
-start_time = datetime(2011, 5, 18, 0, 0)
+start_time = datetime(2011, 5, 17, 0, 0)
 
 unique_times_sorted = unique_times_sorted[unique_times_sorted.index(start_time):]
 

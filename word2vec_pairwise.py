@@ -77,7 +77,9 @@ fig2.show()
 
 # TODO:
 # Add more words (1000 random words)
-# Spot the exact time (DONE) and location for outbreak start (Add animation for outbreak), DONE
+# Spot the exact time (DONE) and location for outbreak start (Add animation for outbreak), 
+# Add alpha to map
+# Spot the first message (?)
 # Check for more symptoms
 # Heatmap of features, similarity of similarity; create a vector of similarity for all symptoms, then compare the similarity of those vectors (cosine)
 # https://scikit-learn.org/stable/auto_examples/cluster/plot_agglomerative_dendrogram.html?highlight=clustering
