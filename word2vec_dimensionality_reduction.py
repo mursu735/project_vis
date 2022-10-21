@@ -1,6 +1,7 @@
 import fetch_model_name
 import random
 import gensim.models
+import gensim.downloader as api
 import plotly.graph_objects as go
 import networkx as nx
 from sklearn.decomposition import IncrementalPCA    # inital reduction
@@ -40,17 +41,24 @@ model_name = fetch_model_name.fetch_model_name()
 
 print(model_name)
 
-new_model = gensim.models.Word2Vec.load(f"gensim-model-{model_name}")
+
 
 #wv = api.load('word2vec-google-news-300')
 
+#new_model = gensim.models.Word2Vec.load(f"gensim-model-{model_name}")
+#wv = new_model.wv
 
-wv = new_model.wv
+wv = api.load("glove-twitter-100")  # load glove vectors
+
 
 word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea"]
 #word_list = ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
 
 word_list_filled = word_list.copy()
+
+similar_symptoms = wv.most_similar(positive="coughing", topn=100)
+
+#word_list_filled.append(similar_symptoms)
 
 number_of_fillers = 0
 max = len(wv.index_to_key) - 1
@@ -65,6 +73,7 @@ while number_of_fillers < 1000:
         indices_used.append(index)
         number_of_fillers += 1
 
+print(word_list_filled)
 x_vals, y_vals, labels = reduce_dimensions(wv, word_list_filled)
 
 print(labels)
@@ -80,6 +89,10 @@ node_x = []
 node_y = []
 symptoms_node_x = []
 symptoms_node_y = []
+similar_symptoms_node_x = []
+similar_symptoms_node_y = []
+symptoms_labels = []
+similar_symptoms_labels = []
 for node in G.nodes():
     x, y = G.nodes[node]['pos']
     node_x.append(x)
@@ -87,6 +100,11 @@ for node in G.nodes():
     if node in word_list:
         symptoms_node_x.append(x)
         symptoms_node_y.append(y)
+        symptoms_labels.append(node)
+    if node in similar_symptoms:
+        similar_symptoms_node_x.append(x)
+        similar_symptoms_node_y.append(y)
+        similar_symptoms_labels.append(node)
 
 #trace = go.Scatter(x=x_vals, y=y_vals, mode='text', text=labels)
 fig.add_trace(
@@ -94,7 +112,11 @@ fig.add_trace(
 )
 
 fig.add_trace(
-    go.Scatter(x=symptoms_node_x, y=symptoms_node_y, mode="markers+text", text=labels, name="Symptoms", textposition="top center", marker=dict(color='Red'))
+    go.Scatter(x=similar_symptoms_node_x, y=similar_symptoms_node_y, mode="markers+text", text=similar_symptoms_labels, name="Similar words to symptoms", textposition="top center", marker=dict(color='Yellow'))
+)
+
+fig.add_trace(
+    go.Scatter(x=symptoms_node_x, y=symptoms_node_y, mode="markers+text", text=symptoms_labels, name="Symptoms", textposition="top center", marker=dict(color='Red'))
 )
 
 
