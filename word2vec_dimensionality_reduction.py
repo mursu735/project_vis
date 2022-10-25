@@ -1,4 +1,4 @@
-import fetch_model_name
+import word2vec_helpers
 import random
 import gensim.models
 import gensim.downloader as api
@@ -37,7 +37,7 @@ def reduce_dimensions(wv, word_list):
 
 
 
-model_name = fetch_model_name.fetch_model_name()
+model_name = word2vec_helpers.fetch_model_name()
 
 print(model_name)
 
@@ -51,7 +51,7 @@ print(model_name)
 wv = api.load("glove-twitter-100")  # load glove vectors
 
 
-word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea"]
+word_list = word2vec_helpers.get_word_list()
 #word_list = ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
 
 word_list_filled = word_list.copy()

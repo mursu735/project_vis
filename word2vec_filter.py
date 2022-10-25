@@ -1,4 +1,5 @@
 import logging
+import word2vec_helpers
 import gensim.downloader as api
 from gensim.test.utils import datapath
 from gensim import utils
@@ -6,9 +7,6 @@ import gensim.models
 import plotly.express as px
 from skimage import io
 import plotly.graph_objects as go
-import fetch_model_name
-
-
 import pandas as pd
 
 def check_if_separator_is_used(separator):
@@ -30,7 +28,7 @@ def check_if_separator_is_used(separator):
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
 
-model_name = fetch_model_name.fetch_model_name()
+model_name = word2vec_helpers.fetch_model_name()
 
 print(model_name)
 
@@ -44,7 +42,7 @@ wv = new_model.wv
 
 print(wv.most_similar(positive=['sick'], topn=100))
 
-word_list = ["pains", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
+word_list = word2vec_helpers.get_word_list()
 #word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea", "lymph node"]
 #word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea"]
 

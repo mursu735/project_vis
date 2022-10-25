@@ -1,4 +1,4 @@
-import fetch_model_name
+import word2vec_helpers
 import gensim.models
 import gensim.downloader as api
 import plotly.graph_objects as go
@@ -11,10 +11,9 @@ from sklearn.cluster import AgglomerativeClustering
 import gensim.downloader as api
 
 
-model_name = fetch_model_name.fetch_model_name()
+model_name = word2vec_helpers.fetch_model_name()
 
 
-new_model = gensim.models.Word2Vec.load(f"gensim-model-{model_name}")
 
 #wv = api.load('word2vec-google-news-300')
 #model = api.load("glove-twitter-25")  # load glove vectors
@@ -28,10 +27,11 @@ print(labels)
 print(data_array)
 '''
 
-#wv = new_model.wv
-wv = api.load("glove-twitter-100")  # load glove vectors
+new_model = gensim.models.Word2Vec.load(f"gensim-model-{model_name}")
+wv = new_model.wv
+#wv = api.load("glove-twitter-100")  # load glove vectors
 
-word_list = ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomiting", "diarrhoea"]
+word_list = word2vec_helpers.get_word_list()
 #word_list = ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
 
 word_distances = np.zeros((len(word_list), len(word_list)))
@@ -93,8 +93,8 @@ print(len(labels))
 '''
 
 # Plot the corresponding dendrogram
-#matrix = similarity_of_similarities
-matrix = word_distances
+matrix = similarity_of_similarities
+#matrix = word_distances
 
 fig2 = ff.create_dendrogram(matrix, labels=word_list)
 for i in range(len(fig2['data'])):
@@ -177,15 +177,5 @@ fig2.update_layout(yaxis2={'domain':[.825, .975],
                                    'ticks':""})
 
 fig2.show()
-
-# TODO:
-# Add more words (1000 random words)
-# Spot the exact time (DONE) and location for outbreak start (Add animation for outbreak), 
-# Add alpha to map
-# Spot the first message (?)
-# Check for more symptoms
-# Heatmap of features, similarity of similarity; create a vector of similarity for all symptoms, then compare the similarity of those vectors (cosine)
-# https://scikit-learn.org/stable/auto_examples/cluster/plot_agglomerative_dendrogram.html?highlight=clustering
-# Self organized map
 
 #print(word_distances)
