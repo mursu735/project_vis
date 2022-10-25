@@ -19,6 +19,7 @@ west_end = 93.1923
 width = 5216
 height = 2653
 image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map.png"
+separator = ":^:"
 
 fig = go.Figure()
 
@@ -45,7 +46,7 @@ with open("filtered2.txt") as file:
 
 row = 0
 
-#Dict, key is time, value is {x: [], y: []}, iterate through sorted list of times, access dict with them, use Frames
+#Dict, key is time, value is {x: [], y: [], text: []}, iterate through sorted list of times, access dict with them, use Frames
 coords_map = {}
 
 with open("filtered_coords.txt") as file:
@@ -53,15 +54,19 @@ with open("filtered_coords.txt") as file:
         line = line.replace("\n", "")
         time = times[row]
         # Match coordinate and time, use the previously read times as guidance
-        coords = line.split(" ")
+        splitted = line.split(separator)
+        coord = splitted[0]
+        text = splitted[1]
+        coords = coord.split(" ")
         x = float(coords[0])
         y = float(coords[1])
         x_interpolate = ((x - north_start) / (north_end - north_start)) * width
         y_interpolate = ((y - west_start) / (west_end - west_start)) * height
         if time not in coords_map:
-            coords_map[time] = {"x": [], "y": []}
+            coords_map[time] = {"x": [], "y": [], "text": []}
         coords_map[time]["x"].append(x_interpolate)
         coords_map[time]["y"].append(y_interpolate)
+        coords_map[time]["text"].append(text)
         row += 1
 
 
@@ -84,7 +89,12 @@ fig_dict["layout"]["updatemenus"] = [
             {
                 "label": "play",
                 "method": "animate",
-                "args": [None]
+                "args": [None,
+                {
+                    "frame": {"duration": 4000, "redraw": False},
+                        "mode": "immediate",
+                        "transition": {"duration": 0}
+                }]
             },
             {
                 "label": "Pause",
@@ -123,6 +133,7 @@ sliders_dict = {
 data_dict = {
     "x": coords_map[unique_times_sorted[0]]["x"],
     "y": coords_map[unique_times_sorted[0]]["y"],
+    "text": coords_map[unique_times_sorted[0]]["text"],
     "mode": "markers",
     "marker": {
         "size": 5,
@@ -146,6 +157,7 @@ for time in unique_times_sorted:
     data_dict = {
         "x": coords_map[time]["x"],
         "y": coords_map[time]["y"],
+        "text": coords_map[time]["text"],
         "mode": "markers",
         "marker": {
             "size": 5,
@@ -181,6 +193,7 @@ fig2.update_layout(
                     xanchor="left",
                     yanchor="bottom",
                     sizing="fill",
+                    opacity=0.6,
                     layer="below")])
 
 fig2.show()
