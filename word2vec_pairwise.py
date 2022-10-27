@@ -32,7 +32,6 @@ wv = new_model.wv
 #wv = api.load("glove-twitter-100")  # load glove vectors
 
 word_list = word2vec_helpers.get_word_list()
-#word_list = ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
 
 word_distances = np.zeros((len(word_list), len(word_list)))
 

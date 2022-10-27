@@ -6,5 +6,11 @@
 # Check for more symptoms
 # Heatmap of features, similarity of similarity; create a vector of similarity for all symptoms, then compare the similarity of those vectors (cosine) (DONE, maybe)
 # https://scikit-learn.org/stable/auto_examples/cluster/plot_agglomerative_dendrogram.html?highlight=clustering
-# Change current image to map, might make it more robust
 # Self organized map
+Train two models¨
+Collection of words
+Term frequency correlation
+Plot different symptoms at different colors; regular flu as well
+List messages under slider, or something like that
+Separate texts between normal flu and outbreak (binary classifier, training with messages before and after)
+
