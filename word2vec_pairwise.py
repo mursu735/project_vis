@@ -11,7 +11,24 @@ from sklearn.cluster import AgglomerativeClustering
 import gensim.downloader as api
 
 
-model_name = word2vec_helpers.fetch_model_name()
+def calculate_distances(word_list):
+    model_name = word2vec_helpers.fetch_model_name_post_ob()
+
+
+    new_model = gensim.models.Word2Vec.load(model_name)
+    wv = new_model.wv
+    #wv = api.load("glove-twitter-100")  # load glove vectors
+
+    word_list = word2vec_helpers.get_word_list()
+
+    word_distances = np.zeros((len(word_list), len(word_list)))
+
+    for i in range(0, len(word_list)):
+        for j in range(0, len(word_list)):
+            diff = wv.similarity(word_list[i], word_list[j])
+            word_distances[i, j] = diff
+
+    return word_distances
 
 
 
@@ -27,18 +44,9 @@ print(labels)
 print(data_array)
 '''
 
-new_model = gensim.models.Word2Vec.load(f"gensim-model-{model_name}")
-wv = new_model.wv
-#wv = api.load("glove-twitter-100")  # load glove vectors
-
 word_list = word2vec_helpers.get_word_list()
 
-word_distances = np.zeros((len(word_list), len(word_list)))
-
-for i in range(0, len(word_list)):
-    for j in range(0, len(word_list)):
-        diff = wv.similarity(word_list[i], word_list[j])
-        word_distances[i, j] = diff
+word_distances = calculate_distances(word_list)
 
 #print(word_distances)
 
