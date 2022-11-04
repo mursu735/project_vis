@@ -9,6 +9,8 @@ import re
 
 import pandas as pd
 
+from word2vec_helpers import get_post_ob_regex, get_pre_ob_regex
+
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
 
 
@@ -27,8 +29,8 @@ class MyCorpus(object):
                 if (re.match(self.regexp, row["Created_at"])):
                     yield utils.simple_preprocess(row['text'])
 
-pre_outbreak = re.compile("^[4-5]\/((3[0-1]?)|([0-9]?)|(1[0-6]))\/2011")
-post_outbreak = re.compile("^5\/((1[7-9])|(2[0-9]))\/2011")
+pre_outbreak = get_pre_ob_regex()
+post_outbreak = get_post_ob_regex()
 
 
 sentences = MyCorpus(pre_outbreak)
