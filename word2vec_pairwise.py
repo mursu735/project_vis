@@ -1,6 +1,6 @@
 import word2vec_helpers
+import word2vec_helpers_graph
 import gensim.models
-import gensim.downloader as api
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.figure_factory as ff
@@ -11,9 +11,9 @@ from sklearn.cluster import AgglomerativeClustering
 import gensim.downloader as api
 
 
-def calculate_distances(word_list):
+def calculate_distances(word_list, model_name):
     #model_name = word2vec_helpers.fetch_model_name_pre_ob()
-    model_name = word2vec_helpers.fetch_model_name()
+    #model_name = word2vec_helpers.fetch_model_name()
     #model_name = word2vec_helpers.fetch_model_name_post_ob()
 
 
@@ -46,30 +46,39 @@ print(labels)
 print(data_array)
 '''
 
-word_list = word2vec_helpers.get_word_list()
+def create_heatmap(model_name, text):
+    word_list = word2vec_helpers.get_word_list()
 
-word_distances = calculate_distances(word_list)
+    word_distances = calculate_distances(word_list, model_name)
 
-#print(word_distances)
+    #print(word_distances)
 
-np.savetxt("test_dist.txt", word_distances)
+    #np.savetxt("test_dist.txt", word_distances)
+    '''
+    fig = px.imshow(word_distances,
+                    text_auto=True,
+                    labels=dict(x="Symptom", y="Symptom", color="Similarity"),
+                    x=word_list,
+                    y=word_list)
 
-fig = px.imshow(word_distances,
-                text_auto=True,
-                labels=dict(x="Symptom", y="Symptom", color="Similarity"),
-                x=word_list,
-                y=word_list)
+    fig.show()
+    '''
+    similarity_of_similarities = np.zeros((len(word_list), len(word_list)))
 
-similarity_of_similarities = np.zeros((len(word_list), len(word_list)))
+    for i in range(0, len(word_list)):
+        current = word_distances[:, i]
+        for j in range(0, len(word_list)):
+            comparison = word_distances[:, j]
+            cosine = np.dot(current, comparison) / (np.linalg.norm(current) * np.linalg.norm(comparison))
+            similarity_of_similarities[i, j] = cosine
 
-for i in range(0, len(word_list)):
-    current = word_distances[:, i]
-    for j in range(0, len(word_list)):
-        comparison = word_distances[:, j]
-        cosine = np.dot(current, comparison) / (np.linalg.norm(current) * np.linalg.norm(comparison))
-        similarity_of_similarities[i, j] = cosine
 
-fig.show()
+    word2vec_helpers_graph.create_heatmap(similarity_of_similarities, word_list, text)
+
+create_heatmap(word2vec_helpers.fetch_model_name(), "Similarity of similarities from the entire time")
+create_heatmap(word2vec_helpers.fetch_model_name_pre_ob(), "Similarity of similarities from pre-outbreak")
+create_heatmap(word2vec_helpers.fetch_model_name_post_ob(), "Similarity of similarities from post-outbreak")
+
 
 # Hierarchical clustering
 '''
@@ -100,7 +109,7 @@ for i in model.labels_:
 print(len(linkage_matrix))
 print(len(labels))
 '''
-
+'''
 # Plot the corresponding dendrogram
 matrix = similarity_of_similarities
 #matrix = word_distances
@@ -187,4 +196,4 @@ fig2.update_layout(yaxis2={'domain':[.825, .975],
 
 fig2.show()
 
-#print(word_distances)
+#print(word_distances)'''

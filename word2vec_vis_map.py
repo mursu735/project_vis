@@ -9,7 +9,7 @@ import plotly.offline as py
 import re
 import base64
 from datetime import datetime
-from PIL import Image
+import word2vec_helpers
 
 north_end = 42.3017
 west_start = 93.5673
@@ -20,6 +20,8 @@ width = 5216
 height = 2653
 image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map.png"
 separator = ":^:"
+symptom1 = word2vec_helpers.get_disease_1_symptoms()
+symptom2 = word2vec_helpers.get_disease_2_symptoms()
 
 fig = go.Figure()
 
@@ -63,12 +65,19 @@ with open("filtered_coords.txt") as file:
         x_interpolate = ((x - north_start) / (north_end - north_start)) * width
         y_interpolate = ((y - west_start) / (west_end - west_start)) * height
         if time not in coords_map:
-            coords_map[time] = {"x": [], "y": [], "text": []}
+            coords_map[time] = {"x": [], "y": [], "text": [], "label": []}
         coords_map[time]["x"].append(x_interpolate)
         coords_map[time]["y"].append(y_interpolate)
         coords_map[time]["text"].append(text)
+        if any(symptom in text for symptom in symptom1):
+            coords_map[time]["label"].append("red")
+        elif any(symptom in text for symptom in symptom2):
+            coords_map[time]["label"].append("green")
+        else:
+            coords_map[time]["label"].append("black")
         row += 1
 
+#print(coords_map)
 
 sorted_counts = sorted(counts.items())
 # print(sorted)
@@ -137,19 +146,19 @@ data_dict = {
     "mode": "markers",
     "marker": {
         "size": 5,
-        "color": "red"
+        "color": coords_map[unique_times_sorted[0]]["label"]
     }
 }
 
 fig_dict["data"].append(data_dict)
 
-print(unique_times_sorted)
-
+#print(unique_times_sorted)
+'''
 start_time = datetime(2011, 5, 17, 0, 0)
 
 unique_times_sorted = unique_times_sorted[unique_times_sorted.index(start_time):]
-
-print(unique_times_sorted)
+'''
+#print(unique_times_sorted)
 
 for time in unique_times_sorted:
     name = time.strftime('%m/%d/%Y %H:%M')
@@ -161,7 +170,7 @@ for time in unique_times_sorted:
         "mode": "markers",
         "marker": {
             "size": 5,
-            "color": "red"
+            "color": coords_map[time]["label"]
         }
     }
     frame["data"].append(data_dict)

@@ -5,76 +5,79 @@ import csv
 from word2vec_helpers import get_pre_ob_regex, get_word_list
 
 
-regex = get_pre_ob_regex()
-word_list = get_word_list()
-total_count = 0
-
-sickness_count_pre = 0
-non_sickness_count_pre = 0
-
-sickness_count_post = 0
-non_sickness_count_post = 0
-
-training_data = []
-all_data = []
-
-sick_pre_ob = []
-other_pre_ob = []
-sick_post_ob = []
-other_post_ob = []
-
-blacklist = ["fried chicken flu", 'weather', "influenc", "influential", "KCSN", "influx", "fluctuation"]
 
 
-with open('MC_1_Materials_3-30-2011/Microblogs.csv') as csvfile:
-    reader = pd.read_csv(csvfile, sep=",", header=0, usecols=["ID", "Created_at", "Location", "text"])
+def split_data():
 
-    for index, row in reader.iterrows():
-        print(total_count, end='\r')
-        text = row["text"].lower()
-        if (re.match(regex, row["Created_at"])):
-            total_count += 1
-            if any(substring in text for substring in word_list):
-                if any(substring in text for substring in blacklist):
+    regex = get_pre_ob_regex()
+    word_list = get_word_list()
+
+    sickness_count_pre = 0
+    non_sickness_count_pre = 0
+
+    sickness_count_post = 0
+    non_sickness_count_post = 0
+
+    sick_pre_ob = []
+    other_pre_ob = []
+    sick_post_ob = []
+    other_post_ob = []
+
+    blacklist = ["chicken flu", 'chickenflu', 'weather', "influenc", "influential", "KCSN", "influx", "fluctuation", "fluorescent", "flag", "window", "trueblood", "bieber", "space", "movie", "wind", "fluffy"]
+
+    total_count = 0
+    print("Splitting data into pre-pandemic and post-pandemic")
+    with open('MC_1_Materials_3-30-2011/Microblogs.csv') as csvfile:
+        reader = pd.read_csv(csvfile, sep=",", header=0, usecols=["ID", "Created_at", "Location", "text"])
+
+        for index, row in reader.iterrows():
+            print(total_count, end='\r')
+            text = row["text"].lower()
+            if (re.match(regex, row["Created_at"])):
+                total_count += 1
+                if any(substring in text for substring in word_list):
+                    if any(substring in text for substring in blacklist):
+                        non_sickness_count_pre += 1
+                        row["label"] = 0
+                        other_pre_ob.append(row)
+                    else:
+                        sickness_count_pre += 1
+                        row["label"] = 1
+                        sick_pre_ob.append(row)
+                else:
                     non_sickness_count_pre += 1
                     row["label"] = 0
                     other_pre_ob.append(row)
-                else:
-                    sickness_count_pre += 1
-                    row["label"] = 1
-                    sick_pre_ob.append(row)
             else:
-                non_sickness_count_pre += 1
-                row["label"] = 0
-                other_pre_ob.append(row)
-        else:
-            total_count += 1
-            print(total_count, end='\r')
-            if any(substring in text for substring in word_list):
-                if any(substring in text for substring in blacklist):
+                total_count += 1
+                if any(substring in text for substring in word_list):
+                    if any(substring in text for substring in blacklist):
+                        non_sickness_count_post += 1
+                        row["label"] = 0
+                        other_post_ob.append(row)
+                    else:
+                        sickness_count_post += 1
+                        row["label"] = 1
+                        sick_post_ob.append(row)
+                else:
                     non_sickness_count_post += 1
                     row["label"] = 0
                     other_post_ob.append(row)
-                else:
-                    sickness_count_post += 1
-                    row["label"] = 1
-                    sick_post_ob.append(row)
-            else:
-                non_sickness_count_post += 1
-                row["label"] = 0
-                other_post_ob.append(row)
 
-pd.DataFrame(sick_pre_ob).to_csv("Binary_classification/sick_pre_ob.csv")
-pd.DataFrame(other_pre_ob).to_csv("Binary_classification/other_pre_ob.csv")
+    pd.DataFrame(sick_pre_ob).to_csv("Binary_classification/sick_pre_ob.csv")
+    pd.DataFrame(other_pre_ob).to_csv("Binary_classification/other_pre_ob.csv")
 
-pd.DataFrame(sick_post_ob).to_csv("Binary_classification/sick_post_ob.csv")
-pd.DataFrame(other_post_ob).to_csv("Binary_classification/other_post_ob.csv")
+    pd.DataFrame(sick_post_ob).to_csv("Binary_classification/sick_post_ob.csv")
+    pd.DataFrame(other_post_ob).to_csv("Binary_classification/other_post_ob.csv")
 
-print(f"Number of sickness messages pre-outbreak: {sickness_count_pre}")
-print(f"Number of other messages pre-outbreak: {non_sickness_count_pre}")
+    print(f"Number of sickness messages pre-outbreak: {sickness_count_pre}")
+    print(f"Number of other messages pre-outbreak: {non_sickness_count_pre}")
 
-print(f"Number of sickness messages post-outbreak: {sickness_count_post}")
-print(f"Number of other messages post-outbreak: {non_sickness_count_post}")
+    print(f"Number of sickness messages post-outbreak: {sickness_count_post}")
+    print(f"Number of other messages post-outbreak: {non_sickness_count_post}")
+
+if __name__ == "__main__":
+    split_data()
 
 '''
 with open("Binary_classification/sick_pre_ob.csv", 'w') as csvfile:

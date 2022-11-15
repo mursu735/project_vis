@@ -1,5 +1,6 @@
 import pandas as pd
 import random
+from word2vec_split_data_to_categories import split_data
 
 sickness_count_pre_ob = 0
 non_sickness_count_pre_ob = 0
@@ -38,6 +39,10 @@ def select_training_data(filename, training_data, other_data):
                 asd = row[["ID", "Created_at", "Location", "text"]]
                 other_data.append(asd)
     return count
+
+split_data()
+
+print("Selecting training samples")
 
 sickness_count_pre_ob += select_training_data("Binary_classification/sick_pre_ob.csv", training_data_pre_ob, other_data_pre_ob)
 non_sickness_count_pre_ob += select_training_data("Binary_classification/other_pre_ob.csv", training_data_pre_ob, other_data_pre_ob)

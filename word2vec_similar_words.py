@@ -15,7 +15,7 @@ model_name = word2vec_helpers.fetch_model_name()
 
 print(model_name)
 
-new_model = gensim.models.Word2Vec.load(f"gensim-model-{model_name}")
+new_model = gensim.models.Word2Vec.load(model_name)
 wv = new_model.wv
 
 #wv = api.load('glove-twitter-100')
@@ -24,7 +24,7 @@ wv = new_model.wv
 
 #wv.evaluate_word_pairs('MC_1_Materials_3-30-2011/Microblogs.csv')
 
-words = wv.most_similar(positive=['fever'], topn=100)
+words = wv.most_similar(positive=['sinuses'], topn=100)
 
 for asd in words:
     print(asd)
