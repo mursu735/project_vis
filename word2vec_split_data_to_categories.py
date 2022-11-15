@@ -23,7 +23,7 @@ other_pre_ob = []
 sick_post_ob = []
 other_post_ob = []
 
-blacklist = ["fried chicken flu", 'weather', "influenc", "influential"]
+blacklist = ["fried chicken flu", 'weather', "influenc", "influential", "KCSN", "influx", "fluctuation"]
 
 
 with open('MC_1_Materials_3-30-2011/Microblogs.csv') as csvfile:

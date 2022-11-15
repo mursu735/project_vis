@@ -22,4 +22,10 @@ def get_post_ob_regex():
 def get_word_list():
     #return ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomit", "diarrhea"]
     # return ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
-    return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breath", "diarrhea", "insomnia", "unwell", "vomit"]
+    return ["fever", "headache", "pneumonia", "bedridden", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breath", "diarrhea", "insomnia", "unwell", "vomit"]
+
+def get_disease_1_symptoms():
+    return ["flu", "sweats", "chills", "pneumonia", "fatigue", "headache"]
+
+def get_disease_2_symptoms():
+ return []

@@ -12,7 +12,9 @@ import gensim.downloader as api
 
 
 def calculate_distances(word_list):
-    model_name = word2vec_helpers.fetch_model_name_post_ob()
+    #model_name = word2vec_helpers.fetch_model_name_pre_ob()
+    model_name = word2vec_helpers.fetch_model_name()
+    #model_name = word2vec_helpers.fetch_model_name_post_ob()
 
 
     new_model = gensim.models.Word2Vec.load(model_name)
