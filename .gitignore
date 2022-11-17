@@ -1,4 +1,4 @@
-MC_1_Materials_3-30-2011/
+MC_1_Materials_3-30-2011/*.csv
 *.txt
 __pycache__/
 gensim-model*

@@ -12,5 +12,9 @@ Collection of words
 Term frequency correlation
 Plot different symptoms at different colors; regular flu as well
 List messages under slider, or something like that
-Separate texts between normal flu and outbreak (binary classifier, training with messages before and after)
+Separate texts between normal flu and outbreak (binary classifier, training with messages before and after), ADD LEGEND
+Piechart, different symptoms
+Summarize by Each district, proportion
+Segregate pre-ob words that suggest 
+4 class vector classifier, (1 and 2 for outbreak, 3 for normal flu)
 

@@ -72,7 +72,7 @@ def plot_timelapse_graph(coords_map, unique_times_sorted, text):
         "mode": "markers",
         "marker": {
             "size": 5,
-            "color": "red"
+            "color": coords_map[unique_times_sorted[0]]["label"]
         }
     }
 
@@ -88,7 +88,7 @@ def plot_timelapse_graph(coords_map, unique_times_sorted, text):
             "mode": "markers",
             "marker": {
                 "size": 5,
-                "color": "red"
+                "color": coords_map[time]["label"]
             }
         }
         frame["data"].append(data_dict)

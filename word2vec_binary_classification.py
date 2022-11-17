@@ -61,6 +61,8 @@ def train_model_and_classify(training_file, classification_file, label):
 
     sickness_messages = 0
     other_messages = 0
+    symptom1 = word2vec_helpers.get_disease_1_symptoms()
+    symptom2 = word2vec_helpers.get_disease_2_symptoms()
 
     for text, category, date, location in zip(docs_new, predicted, reader["Created_at"], reader["Location"]):
         if category == 1:
@@ -68,12 +70,18 @@ def train_model_and_classify(training_file, classification_file, label):
             try:
                 time = datetime.strptime(date, '%m/%d/%Y %H:%M').replace(minute=0)
                 if time not in coords_map:
-                    coords_map[time] = {"x": [], "y": [], "text": []}
+                    coords_map[time] = {"x": [], "y": [], "text": [], "label": []}
                     unique_times.append(time)
                 x, y = word2vec_helpers.get_coords_in_pixels(location)
                 coords_map[time]["x"].append(x)
                 coords_map[time]["y"].append(y)
                 coords_map[time]["text"].append(text)
+                if any(symptom in text for symptom in symptom1):
+                    coords_map[time]["label"].append("red")
+                elif any(symptom in text for symptom in symptom2):
+                    coords_map[time]["label"].append("green")
+                else:
+                    coords_map[time]["label"].append("black")
             except ValueError:
                 print(f"Invalid date: {date}")
         else:
@@ -87,5 +95,5 @@ def train_model_and_classify(training_file, classification_file, label):
     word2vec_helpers_graph.plot_timelapse_graph(coords_map, unique_times_sorted, label)
 
 
-train_model_and_classify("Binary_classification/Training_data/training_data_pre_ob.csv", "Binary_classification/Training_data/other_data_pre_ob.csv", "Animation of sickness-related messages pre-outbreak")
-train_model_and_classify("Binary_classification/Training_data/training_data_post_ob.csv", "Binary_classification/Training_data/other_data_post_ob.csv", "Animation of sickness-related messages post-outbreak")
+train_model_and_classify("Binary_classification/Training_data/training_data_pre_ob.csv", "Binary_classification/Training_data/other_data_pre_ob.csv", "Animation of sickness-related messages pre-outbreak, binary classifier")
+train_model_and_classify("Binary_classification/Training_data/training_data_post_ob.csv", "Binary_classification/Training_data/other_data_post_ob.csv", "Animation of sickness-related messages post-outbreak, binary classifier")

@@ -146,7 +146,8 @@ data_dict = {
     "mode": "markers",
     "marker": {
         "size": 5,
-        "color": coords_map[unique_times_sorted[0]]["label"]
+        "color": coords_map[unique_times_sorted[0]]["label"],
+        "opacity": 0.5
     }
 }
 
@@ -170,7 +171,8 @@ for time in unique_times_sorted:
         "mode": "markers",
         "marker": {
             "size": 5,
-            "color": coords_map[time]["label"]
+            "color": coords_map[time]["label"],
+            "opacity": 0.5
         }
     }
     frame["data"].append(data_dict)
@@ -193,7 +195,7 @@ fig2 = go.Figure(fig_dict)
 map_plot = base64.b64encode(open(image_filename, 'rb').read())
 
 fig2.update_layout(
-                title = "Animation of message locations for each hour",
+                title = "Animation of message locations for each hour, heuristics",
                 images = [dict(
                     source='data:image/png;base64,{}'.format(map_plot.decode()),
                     xref="paper", yref="paper",
