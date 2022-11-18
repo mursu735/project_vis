@@ -1,4 +1,6 @@
 MC_1_Materials_3-30-2011/*.csv
+MC_1_Materials_3-30-2011/*.docx
+MC_1_Materials_3-30-2011/*.pdf
 *.txt
 __pycache__/
 gensim-model*

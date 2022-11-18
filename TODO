@@ -14,7 +14,7 @@ Plot different symptoms at different colors; regular flu as well
 List messages under slider, or something like that
 Separate texts between normal flu and outbreak (binary classifier, training with messages before and after), ADD LEGEND
 Piechart, different symptoms
-Summarize by Each district, proportion
+Summarize by Each district, proportion, bar chart, use edited map to figure out the district, then plot them accordingly based on symptoms
 Segregate pre-ob words that suggest 
 4 class vector classifier, (1 and 2 for outbreak, 3 for normal flu)
 

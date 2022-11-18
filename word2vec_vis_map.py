@@ -59,11 +59,7 @@ with open("filtered_coords.txt") as file:
         splitted = line.split(separator)
         coord = splitted[0]
         text = splitted[1]
-        coords = coord.split(" ")
-        x = float(coords[0])
-        y = float(coords[1])
-        x_interpolate = ((x - north_start) / (north_end - north_start)) * width
-        y_interpolate = ((y - west_start) / (west_end - west_start)) * height
+        x_interpolate, y_interpolate = word2vec_helpers.get_coords_in_pixels(coord)
         if time not in coords_map:
             coords_map[time] = {"x": [], "y": [], "text": [], "label": []}
         coords_map[time]["x"].append(x_interpolate)

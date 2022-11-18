@@ -1,6 +1,8 @@
 from datetime import datetime
+import os
 import word2vec_helpers
 import word2vec_helpers_graph
+import word2vec_select_training_data
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
@@ -95,5 +97,11 @@ def train_model_and_classify(training_file, classification_file, label):
     word2vec_helpers_graph.plot_timelapse_graph(coords_map, unique_times_sorted, label)
 
 
+if not os.path.exists("Binary_classification/Training_data"):
+    print("Training data not found, creating it")
+    word2vec_select_training_data.run_selection()
+    print("Starting training")
+else:
+    print("Training data found, starting training")
 train_model_and_classify("Binary_classification/Training_data/training_data_pre_ob.csv", "Binary_classification/Training_data/other_data_pre_ob.csv", "Animation of sickness-related messages pre-outbreak, binary classifier")
 train_model_and_classify("Binary_classification/Training_data/training_data_post_ob.csv", "Binary_classification/Training_data/other_data_post_ob.csv", "Animation of sickness-related messages post-outbreak, binary classifier")

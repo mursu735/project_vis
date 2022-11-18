@@ -1,24 +1,10 @@
 import pandas as pd
+import os
 import random
 from word2vec_split_data_to_categories import split_data
 
-sickness_count_pre_ob = 0
-non_sickness_count_pre_ob = 0
-total_pre_ob = 0
-
-training_data_pre_ob = []
-other_data_pre_ob = []
-
-training_data_post_ob = []
-other_data_post_ob = []
-
-sickness_count_post_ob = 0
-non_sickness_count_post_ob = 0
-total_post_ob = 0
-
-number_of_samples = 500
-
 def select_training_data(filename, training_data, other_data):
+    number_of_samples = 500
     count = 0
     total = 0
     with open(filename) as csvfile:
@@ -40,28 +26,47 @@ def select_training_data(filename, training_data, other_data):
                 other_data.append(asd)
     return count
 
-split_data()
 
-print("Selecting training samples")
+def run_selection():
+    sickness_count_pre_ob = 0
+    non_sickness_count_pre_ob = 0
 
-sickness_count_pre_ob += select_training_data("Binary_classification/sick_pre_ob.csv", training_data_pre_ob, other_data_pre_ob)
-non_sickness_count_pre_ob += select_training_data("Binary_classification/other_pre_ob.csv", training_data_pre_ob, other_data_pre_ob)
+    training_data_pre_ob = []
+    other_data_pre_ob = []
 
-print(type(training_data_pre_ob))
+    training_data_post_ob = []
+    other_data_post_ob = []
 
-sickness_count_post_ob += select_training_data("Binary_classification/sick_post_ob.csv", training_data_post_ob, other_data_post_ob)
-non_sickness_count_post_ob += select_training_data("Binary_classification/other_post_ob.csv", training_data_post_ob, other_data_post_ob)
+    sickness_count_post_ob = 0
+    non_sickness_count_post_ob = 0
+
+    split_data()
+
+    print("Selecting training samples")
+
+    sickness_count_pre_ob += select_training_data("Binary_classification/sick_pre_ob.csv", training_data_pre_ob, other_data_pre_ob)
+    non_sickness_count_pre_ob += select_training_data("Binary_classification/other_pre_ob.csv", training_data_pre_ob, other_data_pre_ob)
+
+    print(type(training_data_pre_ob))
+
+    sickness_count_post_ob += select_training_data("Binary_classification/sick_post_ob.csv", training_data_post_ob, other_data_post_ob)
+    non_sickness_count_post_ob += select_training_data("Binary_classification/other_post_ob.csv", training_data_post_ob, other_data_post_ob)
+
+    if not os.path.exists("Binary_classification/Training_Data"):
+        os.makedirs("Binary_classification/Training_data")
+
+    pd.DataFrame(training_data_pre_ob).to_csv("Binary_classification/Training_data/training_data_pre_ob.csv")
+    pd.DataFrame(other_data_pre_ob).to_csv("Binary_classification/Training_data/other_data_pre_ob.csv")
+
+    pd.DataFrame(training_data_post_ob).to_csv("Binary_classification/Training_data/training_data_post_ob.csv")
+    pd.DataFrame(other_data_post_ob).to_csv("Binary_classification/Training_data/other_data_post_ob.csv")
 
 
-pd.DataFrame(training_data_pre_ob).to_csv("Binary_classification/Training_data/training_data_pre_ob.csv")
-pd.DataFrame(other_data_pre_ob).to_csv("Binary_classification/Training_data/other_data_pre_ob.csv")
+    print(f"Number of sickness related messages, pre-outbreak: {sickness_count_pre_ob}")
+    print(f"Number of non-sickness related messages, pre-outbreak: {non_sickness_count_pre_ob}")
 
-pd.DataFrame(training_data_post_ob).to_csv("Binary_classification/Training_data/training_data_post_ob.csv")
-pd.DataFrame(other_data_post_ob).to_csv("Binary_classification/Training_data/other_data_post_ob.csv")
+    print(f"Number of sickness related messages, post-outbreak: {sickness_count_post_ob}")
+    print(f"Number of non-sickness related messages, post-outbreak: {non_sickness_count_post_ob}")
 
-        
-print(f"Number of sickness related messages, pre-outbreak: {sickness_count_pre_ob}")
-print(f"Number of non-sickness related messages, pre-outbreak: {non_sickness_count_pre_ob}")
-
-print(f"Number of sickness related messages, post-outbreak: {sickness_count_post_ob}")
-print(f"Number of non-sickness related messages, post-outbreak: {non_sickness_count_post_ob}")
+if __name__ == '__main__':
+    run_selection()

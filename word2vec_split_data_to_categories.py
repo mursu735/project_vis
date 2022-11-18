@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import random
 import re
 import csv
@@ -63,6 +64,9 @@ def split_data():
                     non_sickness_count_post += 1
                     row["label"] = 0
                     other_post_ob.append(row)
+
+    if not os.path.exists("Binary_classification"):
+        os.makedirs("Binary_classification")
 
     pd.DataFrame(sick_pre_ob).to_csv("Binary_classification/sick_pre_ob.csv")
     pd.DataFrame(other_pre_ob).to_csv("Binary_classification/other_pre_ob.csv")
