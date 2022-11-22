@@ -10,11 +10,13 @@ import re
 import base64
 from datetime import datetime
 from PIL import Image
+import word2vec_helpers
 
 north_end = 42.3017
 west_start = 93.5673
 north_start = 42.1609
 west_end = 93.1923
+separator = ":^:"
 
 width = 5216
 height = 2653
@@ -162,11 +164,10 @@ with open("filtered_coords.txt") as file:
         line = line.replace("\n", "")
         time = times[row]
         # Match coordinate and time, use the previously read times as guidance
-        coords = line.split(" ")
-        x = float(coords[0])
-        y = float(coords[1])
-        x_interpolate = ((x - north_start) / (north_end - north_start)) * width
-        y_interpolate = ((y - west_start) / (west_end - west_start)) * height
+        splitted = line.split(separator)
+        coord = splitted[0]
+        text = splitted[1]
+        x_interpolate, y_interpolate = word2vec_helpers.get_coords_in_pixels(coord)
         if time not in coords_map:
             coords_map[time] = {"x": [], "y": []}
         coords_map[time]["x"].append(x_interpolate)
