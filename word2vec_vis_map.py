@@ -68,7 +68,7 @@ with open("filtered_coords.txt") as file:
         if any(symptom in text for symptom in symptom1):
             coords_map[time]["label"].append("red")
         elif any(symptom in text for symptom in symptom2):
-            coords_map[time]["label"].append("green")
+            coords_map[time]["label"].append("blue")
         else:
             coords_map[time]["label"].append("black")
         row += 1

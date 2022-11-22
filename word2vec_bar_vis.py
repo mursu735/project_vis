@@ -62,7 +62,6 @@ with open("filtered_coords.txt") as file:
         x, y = word2vec_helpers.get_coords_in_pixels(coord)
         x = min(x, sizex - 1)
         y = min(y, sizey - 1)
-        print(coord, x, y)
         if time not in coords_map:
             coords_map[time] = {"Symptom 1": np.zeros(13), "Symptom 2": np.zeros(13), "Other symptoms": np.zeros(13)}
         pixel = pix[x, y]
@@ -76,10 +75,100 @@ with open("filtered_coords.txt") as file:
             coords_map[time]["Other symptoms"][index] += 1
         row += 1
 
-fig = go.Figure()
+
+unique_times_sorted = sorted(unique_times)
+
+start_time = datetime(2011, 5, 17, 0, 0)
+
+unique_times_sorted = unique_times_sorted[unique_times_sorted.index(start_time):]
+
+frames=[
+    go.Frame(
+        data=[
+            go.Bar(
+                x=districts,
+                y=coords_map[time]["Symptom 1"],
+                name=f"Symptom group 1: {symptom1}"
+            ),
+            go.Bar(
+                x=districts,
+                y=coords_map[time]["Symptom 2"],
+                name=f"Symptom group 2: {symptom2}"
+            ),
+            go.Bar(
+            x=districts,
+            y=coords_map[time]["Other symptoms"],
+            name="Other symptoms"
+        )
+        ],
+        name=time.strftime('%m/%d/%Y %H:%M')
+    )
+    for time in unique_times_sorted]
 
 
+steps = []
+for i in range(len(unique_times_sorted)):
+    time = unique_times_sorted[i]
+    name = time.strftime('%m/%d/%Y %H:%M')
+    step = dict(
+        method="animate",
+        args=[
+            [name],
+            {"frame": {"duration": 1000, "redraw": False},
+            "mode": "immediate",
+            "transition": {"duration": 1000}}
+        ],
+        label=name
+    )
+    steps.append(step)
 
+sliders = [dict(
+    pad={"t": 50},
+    steps=steps
+)]
+
+# Defining figure
+fig = go.Figure(
+    data=[
+        go.Bar(
+            x=districts,
+            y=coords_map[unique_times_sorted[0]]["Symptom 1"],
+            name=f"Symptom group 1: {symptom1}"
+        ),
+        go.Bar(
+            x=districts,
+            y=coords_map[unique_times_sorted[0]]["Symptom 2"],
+            name=f"Symptom group 2: {symptom2}"
+        ),
+        go.Bar(
+            x=districts,
+            y=coords_map[unique_times_sorted[0]]["Other symptoms"],
+            name="Other symptoms"
+        )
+    ],
+    layout=go.Layout( # Styling
+        scene=dict(
+        ),
+        updatemenus=[
+            dict(
+                type='buttons',
+                buttons=[
+                    dict(
+                        label='Play',
+                        method='animate',
+                        args=[None]
+                    )
+                ]
+            )
+        ]
+    ),
+    frames=frames
+)
+#fig.show()
+
+
+fig.update_layout(barmode='group', xaxis_tickangle=-45, sliders=sliders, yaxis_range=[0,500])
+fig.show()
 
 # TODO:  add frames to barchart
 
