@@ -5,4 +5,5 @@ MC_1_Materials_3-30-2011/*.pdf
 __pycache__/
 gensim-model*
 .DS_Store
-Binary_classification/
+Binary_classification/*.csv
+Binary_classification/Training_data/*.csv

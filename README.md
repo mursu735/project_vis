@@ -32,9 +32,11 @@ Run `python word2vec_vis_map.py`
 ## To train a binary classifier, and visualize the data
 Run `python word2vec_binary_classification.py`
 
-When run for the first time, splits the data into multiple categories and selects the training data. **This will take some time.**
+When run for the first time, splits the data into multiple categories and selects the training data randomly. **This will take some time.**
 
 In subsequent runs, it will skip creating the training data, and instead trains the classifier immediately.
+
+**NOTE** An pre-computed version is available under Binary_classfication/Training_data/Archive.zip (this can be extracted to create the same structure)
 
 ## To create a visualization of pairwise similarities
 
