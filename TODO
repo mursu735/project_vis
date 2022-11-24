@@ -10,11 +10,12 @@
 Train two models
 Collection of words
 Term frequency correlation
-Plot different symptoms at different colors; regular flu as well
-List messages under slider, or something like that
+Plot different symptoms at different colors; regular flu as well (DONE)
+List messages under slider, or something like that (most likely very difficult unless using some other UI library)
 Separate texts between normal flu and outbreak (binary classifier, training with messages before and after), ADD LEGEND
-Piechart, different symptoms
-Summarize by Each district, proportion, bar chart, use edited map to figure out the district, then plot them accordingly based on symptoms
-Segregate pre-ob words that suggest 
+Piechart, different symptoms, animation subplots
+Summarize by Each district, proportion, bar chart, use edited map to figure out the district, then plot them accordingly based on symptoms (DONE)
+Change barchart to dynamic range, should be doable
+Segregate pre-ob words that suggest normal flu
 4 class vector classifier, (1 and 2 for outbreak, 3 for normal flu)
 
