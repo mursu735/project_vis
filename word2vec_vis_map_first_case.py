@@ -19,6 +19,7 @@ west_end = 93.1923
 width = 5216
 height = 2653
 image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map.png"
+edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited.png"
 separator = ":^:"
 symptom1 = word2vec_helpers.get_disease_1_symptoms()
 symptom2 = word2vec_helpers.get_disease_2_symptoms()
