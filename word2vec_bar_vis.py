@@ -1,13 +1,6 @@
 import numpy as np
-import pandas as pd
-from matplotlib import pyplot as plt
-import plotly.express as px
-from skimage import io
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.offline as py
-import re
-import base64
+import math
 from datetime import datetime
 from PIL import Image
 import word2vec_helpers
@@ -116,7 +109,7 @@ for i in range(len(unique_times_sorted)):
             [name],
             {"frame": {"duration": 1000, "redraw": False},
             "mode": "immediate",
-            "transition": {"duration": 1000}}
+            "transition": {"duration": 500, "easing": "cubic-in-out"}}
         ],
         label=name
     )
@@ -156,8 +149,18 @@ fig = go.Figure(
                     dict(
                         label='Play',
                         method='animate',
-                        args=[None]
-                    )
+                        args=[None, {"frame": {"duration": 1000, "redraw": False},
+                                "fromcurrent": True, "transition": {"duration": 500,
+                                                                    "easing": "quadratic-in-out"}}]
+
+                    ),
+                    dict(
+                        label="Pause",
+                        method="animate",
+                        args=[[None], {"frame": {"duration": 0, "redraw": False},
+                                        "mode": "immediate",
+                                        "transition": {"duration": 0}}],
+                )
                 ]
             )
         ]
@@ -167,7 +170,22 @@ fig = go.Figure(
 #fig.show()
 
 
-fig.update_layout(barmode='group', xaxis_tickangle=-45, sliders=sliders, yaxis_range=[0,500])
+fig.update_layout(barmode='group', xaxis_tickangle=-45, sliders=sliders)
+
+yranges = {}
+
+for time in coords_map:
+    cur = int(max(np.amax(coords_map[time]["Symptom 1"]), np.amax(coords_map[time]["Symptom 2"]), np.amax(coords_map[time]["Other symptoms"])))
+    key = time.strftime('%m/%d/%Y %H:%M')
+    cur = math.ceil(cur/10)*10
+    yranges[key] = [0, cur]
+
+
+for f in fig.frames:
+    if f.name in yranges.keys():
+        f.layout.update(yaxis_range = yranges[f.name])
+
+
 fig.show()
 
 # TODO:  add frames to barchart

@@ -1,5 +1,6 @@
 import os
 import re
+import numpy as np
 
 north_end = 42.3017
 west_start = 93.5673
@@ -53,3 +54,8 @@ def get_coords_in_pixels(coord):
     x_interpolate = ((x - north_start) / (north_end - north_start)) * width
     y_interpolate = ((y - west_start) / (west_end - west_start)) * height
     return x_interpolate, y_interpolate
+
+def determine_message_location(image, message):
+    # Each row correponds to RGB color on edited map, used to group the symptoms
+    colors = np.array(([255, 239, 54], [54, 206, 78], [254, 200, 54], [61, 79, 201], [180, 70, 184], [148, 254, 250], [236, 36, 45], [249, 42, 181], [133, 7, 30], [253, 235, 170], [88, 88, 88], [125, 61, 251], [251, 127, 54]))
+    districts = ["Cornertown", "Northville", "Villa", "Westside", "Smogtown", "Plainville", "Downtown", "Uptown", "Riverside", "Southville", "Lakeside", "Eastside", "Suburbia"]

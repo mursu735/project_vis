@@ -15,7 +15,9 @@ List messages under slider, or something like that (most likely very difficult u
 Separate texts between normal flu and outbreak (binary classifier, training with messages before and after), ADD LEGEND
 Piechart, different symptoms, animation subplots
 Summarize by Each district, proportion, bar chart, use edited map to figure out the district, then plot them accordingly based on symptoms (DONE)
+
+NEW:
 Change barchart to dynamic range, should be doable
-Segregate pre-ob words that suggest normal flu
-4 class vector classifier, (1 and 2 for outbreak, 3 for normal flu)
+Find the very first case
+Write a report so far (probably in Smogtown, Plainville, Downtown)
 
