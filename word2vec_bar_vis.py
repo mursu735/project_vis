@@ -57,7 +57,8 @@ with open("filtered_coords.txt") as file:
         y = min(y, sizey - 1)
         if time not in coords_map:
             coords_map[time] = {"Symptom 1": np.zeros(13), "Symptom 2": np.zeros(13), "Other symptoms": np.zeros(13)}
-        pixel = pix[x, y]
+        y_tl = word2vec_helpers.get_height() - y - 1
+        pixel = pix[x, y_tl]
         asd = colors - pixel
         index = np.argmin(np.absolute(asd.sum(axis=1)))
         if any(symptom in text for symptom in symptom1):

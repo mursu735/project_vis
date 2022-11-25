@@ -28,7 +28,8 @@ def get_post_ob_regex():
 def get_word_list():
     #return ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomit", "diarrhea"]
     # return ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
-    return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breath", "diarrhea", "insomnia", "unwell", "vomit"]
+    # return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breath", "diarrhea", "insomnia", "unwell", "vomit"]
+    return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breath", "diarrhea", "insomnia", "unwell", "vomit", "sick"]
 
 def get_disease_1_symptoms():
     return ["flu", "sweats", "chills", "pneumonia", "fatigue", "headache", "cold", "fever"]
@@ -49,10 +50,10 @@ def get_coords_in_pixels(coord):
     coords = coord.split(" ")
     width = get_width()
     height = get_height()
-    x = float(coords[0])
-    y = float(coords[1])
-    x_interpolate = ((x - north_start) / (north_end - north_start)) * width
-    y_interpolate = ((y - west_start) / (west_end - west_start)) * height
+    n = float(coords[0])
+    w = float(coords[1])
+    y_interpolate = (((n - north_start) / (north_end - north_start))) * height
+    x_interpolate = (((w - west_start) / (west_end - west_start))) * width
     return x_interpolate, y_interpolate
 
 def determine_message_location(image, message):

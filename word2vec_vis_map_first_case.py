@@ -23,63 +23,59 @@ edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited.png"
 separator = ":^:"
 symptom1 = word2vec_helpers.get_disease_1_symptoms()
 symptom2 = word2vec_helpers.get_disease_2_symptoms()
+other_words = word2vec_helpers.get_word_list()
 
 fig = go.Figure()
 
-x_arr = []
-y_arr = []
-dates = []
-counter = -1
-pattern = re.compile("^[4-5]\/[0-3]?[0-9]\/2011$")
-
-counts = {}
-times = []
-unique_times = []
-
-with open("filtered2.txt") as file:
-    for line in file.readlines():
-        line = line.replace("\n", "")
-        time = datetime.strptime(line, '%m/%d/%Y %H:%M').replace(minute=0)
-        times.append(time)
-        if time not in counts:
-            counts[time] = 1
-            unique_times.append(time)
-        else:
-            counts[time] += 1
-
-row = 0
-
 #Dict, key is time, value is {x: [], y: [], text: []}, iterate through sorted list of times, access dict with them, use Frames
 coords_map = {}
+unique_times = []
+interesting_messages = {}
 
-with open("filtered_coords.txt") as file:
+with open("filtered_first_case.txt") as file:
     for line in file.readlines():
         line = line.replace("\n", "")
-        time = times[row]
         # Match coordinate and time, use the previously read times as guidance
         splitted = line.split(separator)
-        coord = splitted[0]
-        text = splitted[1]
+        time = datetime.strptime(splitted[0], '%m/%d/%Y %H:%M').replace(minute=0)
+        coord = splitted[1]
+        text = coord + " / " + splitted[2]
+
         x_interpolate, y_interpolate = word2vec_helpers.get_coords_in_pixels(coord)
         if time not in coords_map:
-            coords_map[time] = {"x": [], "y": [], "text": [], "label": []}
+            coords_map[time] = {"x": [], "y": [], "text": [], "label": [], "opacity": []}
+            unique_times.append(time)
+            interesting_messages[time] = []
         coords_map[time]["x"].append(x_interpolate)
         coords_map[time]["y"].append(y_interpolate)
         coords_map[time]["text"].append(text)
         if any(symptom in text for symptom in symptom1):
             coords_map[time]["label"].append("red")
+            coords_map[time]["opacity"].append(1.0)
+            interesting_messages[time].append(f"{time}: {text}")
         elif any(symptom in text for symptom in symptom2):
             coords_map[time]["label"].append("blue")
+            coords_map[time]["opacity"].append(1.0)
+            interesting_messages[time].append(f"{time}: {text}")
+        elif any(symptom in text for symptom in other_words):
+            coords_map[time]["label"].append("yellow")
+            coords_map[time]["opacity"].append(1.0)
+            interesting_messages[time].append(f"{time}: {text}")
         else:
             coords_map[time]["label"].append("black")
-        row += 1
+            coords_map[time]["opacity"].append(0.5)
 
 #print(coords_map)
 
-sorted_counts = sorted(counts.items())
 # print(sorted)
 unique_times_sorted = sorted(unique_times)
 
+
+with open("filtered_first_case_interesting.txt", "w") as file:
+    for time in unique_times_sorted:
+        file.write(f"{time}:\n")
+        for message in interesting_messages[time]:
+            file.write(f"{message}\n")
 
 fig_dict = {
     "data": [],
@@ -145,7 +141,7 @@ data_dict = {
     "marker": {
         "size": 5,
         "color": coords_map[unique_times_sorted[0]]["label"],
-        "opacity": 0.5
+        "opacity": coords_map[unique_times_sorted[0]]["opacity"]
     }
 }
 
@@ -170,7 +166,7 @@ for time in unique_times_sorted:
         "marker": {
             "size": 5,
             "color": coords_map[time]["label"],
-            "opacity": 0.5
+            "opacity": coords_map[time]["opacity"]
         }
     }
     frame["data"].append(data_dict)
