@@ -189,9 +189,6 @@ for f in fig.frames:
 
 fig.show()
 
-# TODO:  add frames to barchart
-
-
 # Cornertown = [255, 239, 54]
 # Northville = [54, 206, 78]
 # Villa = [254, 200, 54]

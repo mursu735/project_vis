@@ -45,10 +45,10 @@ print(model_name)
 
 #wv = api.load('word2vec-google-news-300')
 
-#new_model = gensim.models.Word2Vec.load(f"gensim-model-{model_name}")
-#wv = new_model.wv
+new_model = gensim.models.Word2Vec.load(f"{model_name}")
+wv = new_model.wv
 
-wv = api.load("glove-twitter-100")  # load glove vectors
+#wv = api.load("glove-twitter-100")  # load glove vectors
 
 
 word_list = word2vec_helpers.get_word_list()

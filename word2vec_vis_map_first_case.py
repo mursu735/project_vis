@@ -8,6 +8,7 @@ from plotly.subplots import make_subplots
 import plotly.offline as py
 import re
 import base64
+from PIL import Image
 from datetime import datetime
 import word2vec_helpers
 
@@ -18,18 +19,25 @@ west_end = 93.1923
 
 width = 5216
 height = 2653
+scale_factor = 0.5
 image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map.png"
 edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited.png"
 separator = ":^:"
 symptom1 = word2vec_helpers.get_disease_1_symptoms()
 symptom2 = word2vec_helpers.get_disease_2_symptoms()
-other_words = word2vec_helpers.get_word_list()
+other_symptoms = []
+tmp = word2vec_helpers.get_word_list()
+
+for element in tmp:
+    if element not in symptom1 and element not in symptom2:
+        other_symptoms.append(element)
 
 fig = go.Figure()
 
 #Dict, key is time, value is {x: [], y: [], text: []}, iterate through sorted list of times, access dict with them, use Frames
 coords_map = {}
 unique_times = []
+unique_times_precise = []
 interesting_messages = {}
 
 with open("filtered_first_case.txt") as file:
@@ -37,156 +45,320 @@ with open("filtered_first_case.txt") as file:
         line = line.replace("\n", "")
         # Match coordinate and time, use the previously read times as guidance
         splitted = line.split(separator)
-        time = datetime.strptime(splitted[0], '%m/%d/%Y %H:%M').replace(minute=0)
+        time_precise = datetime.strptime(splitted[0], '%m/%d/%Y %H:%M')
+        time = time_precise.replace(minute=0)
         coord = splitted[1]
         text = coord + " / " + splitted[2]
 
         x_interpolate, y_interpolate = word2vec_helpers.get_coords_in_pixels(coord)
         if time not in coords_map:
-            coords_map[time] = {"x": [], "y": [], "text": [], "label": [], "opacity": []}
+            coords_map[time] = {"Symptom1": {"x": [], "y": [], "text": []},
+                                "Symptom2": {"x": [], "y": [], "text": []},
+                                "Other": {"x": [], "y": [], "text": []},
+                                "Filling": {"x": [], "y": [], "text": []}}
             unique_times.append(time)
-            interesting_messages[time] = []
-        coords_map[time]["x"].append(x_interpolate)
-        coords_map[time]["y"].append(y_interpolate)
-        coords_map[time]["text"].append(text)
+
         if any(symptom in text for symptom in symptom1):
-            coords_map[time]["label"].append("red")
-            coords_map[time]["opacity"].append(1.0)
-            interesting_messages[time].append(f"{time}: {text}")
+            coords_map[time]["Symptom1"]["x"].append(x_interpolate * scale_factor)
+            coords_map[time]["Symptom1"]["y"].append(y_interpolate * scale_factor)
+            coords_map[time]["Symptom1"]["text"].append(text)
+            if time_precise not in interesting_messages:
+                unique_times_precise.append(time_precise)
+                interesting_messages[time_precise] = []
+            asd = "Symptom 1: " + text
+            interesting_messages[time_precise].append(asd)
+            #coords_map[time]["label"].append("red")
         elif any(symptom in text for symptom in symptom2):
-            coords_map[time]["label"].append("blue")
-            coords_map[time]["opacity"].append(1.0)
-            interesting_messages[time].append(f"{time}: {text}")
-        elif any(symptom in text for symptom in other_words):
-            coords_map[time]["label"].append("yellow")
-            coords_map[time]["opacity"].append(1.0)
-            interesting_messages[time].append(f"{time}: {text}")
+            coords_map[time]["Symptom2"]["x"].append(x_interpolate * scale_factor)
+            coords_map[time]["Symptom2"]["y"].append(y_interpolate * scale_factor)
+            coords_map[time]["Symptom2"]["text"].append(text)
+            if time_precise not in interesting_messages:
+                unique_times_precise.append(time_precise)
+                interesting_messages[time_precise] = []
+            asd = "Symptom 2: " + text
+            interesting_messages[time_precise].append(asd)
+            #coords_map[time]["label"].append("blue")
+        elif any(symptom in text for symptom in other_symptoms):
+            coords_map[time]["Other"]["x"].append(x_interpolate * scale_factor)
+            coords_map[time]["Other"]["y"].append(y_interpolate * scale_factor)
+            coords_map[time]["Other"]["text"].append(text)
+            if time_precise not in interesting_messages:
+                unique_times_precise.append(time_precise)
+                interesting_messages[time_precise] = []
+            asd = "Other: " + text
+            interesting_messages[time_precise].append(asd)
+            #coords_map[time]["label"].append("black")
         else:
-            coords_map[time]["label"].append("black")
-            coords_map[time]["opacity"].append(0.5)
+            coords_map[time]["Filling"]["x"].append(x_interpolate * scale_factor)
+            coords_map[time]["Filling"]["y"].append(y_interpolate * scale_factor)
+            coords_map[time]["Filling"]["text"].append(text)
+            #coords_map[time]["label"].append("black")
 
-#print(coords_map)
-
-# print(sorted)
 unique_times_sorted = sorted(unique_times)
 
+unique_times_precise_sorted = sorted(unique_times_precise)
 
 with open("filtered_first_case_interesting.txt", "w") as file:
-    for time in unique_times_sorted:
+    for time in unique_times_precise_sorted:
         file.write(f"{time}:\n")
         for message in interesting_messages[time]:
             file.write(f"{message}\n")
 
-fig_dict = {
-    "data": [],
-    "layout": {},
-    "frames": []
-}
 
-fig_dict["layout"]["xaxis"] = {"range": [0, width], "autorange": False}
-fig_dict["layout"]["yaxis"] = {"range": [0, height], "autorange": False}
-fig_dict["layout"]["updatemenus"] = [
-    {
-        "buttons": [
-            {
-                "label": "play",
-                "method": "animate",
-                "args": [None,
-                {
-                    "frame": {"duration": 1000, "redraw": False},
-                    "fromcurrent": True,
-                    "mode": "immediate",
-                    "transition": {"duration": 0}
-                }]
-            },
-            {
-                "label": "Pause",
-                "method": "animate",
-                "args": [
-                    [None],
-                    {
-                        "frame": {"duration": 0, "redraw": False},
-                        "mode": "immediate",
-                        "transition": {"duration": 0}
-                    }
-                ]
-            }
-        ]
-    }
-]
+if len(coords_map[unique_times_sorted[0]]["Symptom1"]["x"]) == 0:
+    coords_map[unique_times_sorted[0]]["Symptom1"]["x"].append(width + 20)
+    coords_map[unique_times_sorted[0]]["Symptom1"]["y"].append(height + 20)
+    coords_map[unique_times_sorted[0]]["Symptom1"]["text"].append("padding")
 
-sliders_dict = {
-    "active": 0,
-    "yanchor": "top",
-    "xanchor": "left",
-    "currentvalue": {
-        "font": {"size": 20},
-        "prefix": "Date:",
-        "visible": True,
-        "xanchor": "right"
-    },
-    "transition": {"duration": 200, "easing": "cubic-in-out"},
-    "pad": {"b": 100, "t": 100},
-    "len": 0.9,
-    "x": 0.1,
-    "y": 0,
-    "steps": []
-}
+if len(coords_map[unique_times_sorted[0]]["Symptom2"]["x"]) == 0:
+    coords_map[unique_times_sorted[0]]["Symptom2"]["x"].append(width + 20)
+    coords_map[unique_times_sorted[0]]["Symptom2"]["y"].append(height + 20)
+    coords_map[unique_times_sorted[0]]["Symptom2"]["text"].append("padding")
 
-data_dict = {
-    "x": coords_map[unique_times_sorted[0]]["x"],
-    "y": coords_map[unique_times_sorted[0]]["y"],
-    "text": coords_map[unique_times_sorted[0]]["text"],
-    "mode": "markers",
-    "marker": {
-        "size": 5,
-        "color": coords_map[unique_times_sorted[0]]["label"],
-        "opacity": coords_map[unique_times_sorted[0]]["opacity"]
-    }
-}
+if len(coords_map[unique_times_sorted[0]]["Other"]["x"]) == 0:
+    coords_map[unique_times_sorted[0]]["Other"]["x"].append(width + 20)
+    coords_map[unique_times_sorted[0]]["Other"]["y"].append(height + 20)
+    coords_map[unique_times_sorted[0]]["Other"]["text"].append("padding")
 
-fig_dict["data"].append(data_dict)
+if len(coords_map[unique_times_sorted[0]]["Filling"]["x"]) == 0:
+    coords_map[unique_times_sorted[0]]["Filling"]["x"].append(width + 20)
+    coords_map[unique_times_sorted[0]]["Filling"]["y"].append(height + 20)
+    coords_map[unique_times_sorted[0]]["Filling"]["text"].append("padding")
 
-#print(unique_times_sorted)
-'''
-start_time = datetime(2011, 5, 17, 0, 0)
+frames=[
+    go.Frame(
+        data=[
+            go.Scatter(
+                x=coords_map[time]["Symptom1"]["x"],
+                y=coords_map[time]["Symptom1"]["y"],
+                text=coords_map[time]["Symptom1"]["text"],
+                name=f"Symptom group 1: {symptom1}",
+                mode="markers",
+                marker=dict(
+                    size=8,
+                    color="red",
+                    opacity=0.5
+                )
+            ),
+            go.Scatter(
+                x=coords_map[time]["Symptom2"]["x"],
+                y=coords_map[time]["Symptom2"]["y"],
+                text=coords_map[time]["Symptom2"]["text"],
+                name=f"Symptom group 2: {symptom2}",
+                mode="markers",
+                marker=dict(
+                    size=8,
+                    color="blue",
+                    opacity=0.5
+                )
+            ),
+            go.Scatter(
+            x=coords_map[time]["Other"]["x"],
+            y=coords_map[time]["Other"]["y"],
+            text=coords_map[time]["Other"]["text"],
+            name=f"Other symptoms: {other_symptoms}",
+            mode="markers",
+            marker=dict(
+                    size=8,
+                    color="yellow",
+                    opacity=0.5
+                )
+            ),
+            go.Scatter(
+            x=coords_map[time]["Filling"]["x"],
+            y=coords_map[time]["Filling"]["y"],
+            text=coords_map[time]["Filling"]["text"],
+            name="No symptoms",
+            mode="markers",
+            marker=dict(
+                    size=8,
+                    color="black",
+                    opacity=0.5
+                )
+            ),
+            go.Scatter(
+                x=[0, width * scale_factor],
+                y=[0, height * scale_factor],
+                mode="markers",
+                marker_opacity=0
+            )
+        ],
+        name=time.strftime('%m/%d/%Y %H:%M')
+    )
+    for time in unique_times_sorted]
 
-unique_times_sorted = unique_times_sorted[unique_times_sorted.index(start_time):]
-'''
-#print(unique_times_sorted)
-
-for time in unique_times_sorted:
+steps = []
+for i in range(len(unique_times_sorted)):
+    time = unique_times_sorted[i]
     name = time.strftime('%m/%d/%Y %H:%M')
-    frame = {"data": [], "name": name}
-    data_dict = {
-        "x": coords_map[time]["x"],
-        "y": coords_map[time]["y"],
-        "text": coords_map[time]["text"],
-        "mode": "markers",
-        "marker": {
-            "size": 5,
-            "color": coords_map[time]["label"],
-            "opacity": coords_map[time]["opacity"]
-        }
-    }
-    frame["data"].append(data_dict)
+    step = dict(
+        method="animate",
+        args=[
+            [name],
+            {"frame": {"duration": 0, "redraw": False},
+            "mode": "immediate",
+            "transition": {"duration": 0, "easing": "cubic-in-out"}}
+        ],
+        label=name
+    )
+    steps.append(step)
 
-    fig_dict["frames"].append(frame)
-    slider_step = {"args": [
-        [name],
-        {"frame": {"duration": 0, "redraw": False},
-         "mode": "immediate",
-         "transition": {"duration": 0}}
+sliders = [dict(
+    pad={"t": 50},
+    steps=steps
+)]
+
+fig = go.Figure(
+    data=[
+        go.Scatter(
+                x=coords_map[unique_times_sorted[0]]["Symptom1"]["x"],
+                y=coords_map[unique_times_sorted[0]]["Symptom1"]["y"],
+                text=coords_map[unique_times_sorted[0]]["Symptom1"]["text"],
+                name=f"Symptom group 1: {symptom1}",
+                mode="markers",
+                marker=dict(
+                    size=8,
+                    color="red",
+                    opacity=0.5
+                )
+            ),
+            go.Scatter(
+                x=coords_map[unique_times_sorted[0]]["Symptom2"]["x"],
+                y=coords_map[unique_times_sorted[0]]["Symptom2"]["y"],
+                text=coords_map[unique_times_sorted[0]]["Symptom2"]["text"],
+                name=f"Symptom group 2: {symptom2}",
+                mode="markers",
+                marker=dict(
+                    size=8,
+                    color="blue",
+                    opacity=0.5
+                )
+            ),
+            go.Scatter(
+                x=coords_map[unique_times_sorted[0]]["Other"]["x"],
+                y=coords_map[unique_times_sorted[0]]["Other"]["y"],
+                text=coords_map[unique_times_sorted[0]]["Other"]["text"],
+                name=f"Other symptoms: {other_symptoms}",
+                mode="markers",
+                marker=dict(
+                    size=8,
+                    color="yellow",
+                    opacity=0.5
+                )
+            ),
+            go.Scatter(
+            x=coords_map[time]["Filling"]["x"],
+            y=coords_map[time]["Filling"]["y"],
+            text=coords_map[time]["Filling"]["text"],
+            name="No symptoms",
+            mode="markers",
+            marker=dict(
+                    size=8,
+                    color="black",
+                    opacity=0.5
+                )
+            ),
+            go.Scatter(
+                x=[0, width * scale_factor],
+                y=[0, height * scale_factor],
+                mode="markers",
+                marker_opacity=0
+            )
     ],
-        "label": name,
-        "method": "animate"}
-    sliders_dict["steps"].append(slider_step)
+    layout=go.Layout( # Styling
+        scene=dict(
+        ),
+        updatemenus=[
+            dict(
+                type='buttons',
+                buttons=[
+                    dict(
+                        label='Play',
+                        method='animate',
+                        args=[None, {"frame": {"duration": 0, "redraw": False},
+                                "fromcurrent": True, "transition": {"duration": 0,
+                                                                    "easing": "quadratic-in-out"}}]
 
-fig_dict["layout"]["sliders"] = [sliders_dict]
+                    ),
+                    dict(
+                        label="Pause",
+                        method="animate",
+                        args=[[None], {"frame": {"duration": 0, "redraw": False},
+                                        "mode": "immediate",
+                                        "transition": {"duration": 0}}],
+                )
+                ]
+            )
+        ],
+        yaxis=dict(range=[0, height], autorange=False),
+        xaxis=dict(range=[0, width], autorange=False)
+    ),
+    
+    frames=frames
+)
 
-fig2 = go.Figure(fig_dict)
+fig.update_layout(sliders=sliders)
 
-map_plot = base64.b64encode(open(image_filename, 'rb').read())
+# Configure axes
+fig.update_xaxes(
+    visible=True,
+    range=[0, width * scale_factor]
+)
+
+fig.update_yaxes(
+    visible=True,
+    range=[0, height * scale_factor],
+    # the scaleanchor attribute ensures that the aspect ratio stays constant
+    scaleanchor="x"
+)
+
+
+im = Image.open(image_filename) # Can be many different formats.
+
+fig.add_layout_image(
+    dict(
+        source=im,
+        x=0,
+        sizex=width * scale_factor,
+        y=height * scale_factor,
+        sizey=height * scale_factor,
+        xref="x",
+        yref="y",
+        opacity=1.0,
+        layer="below",
+        sizing="stretch",
+    )
+)
+
+fig.update_layout(
+    width=width * scale_factor,
+    height=height * scale_factor,
+    margin={"l": 0, "r": 0, "t": 0, "b": 0},
+)
+
+#print(coords_map)
+
+# print(sorted)
+
+im = Image.open(image_filename) # Can be many different formats.
+
+fig.add_layout_image(
+    dict(
+        source=im,
+        x=0,
+        sizex=width * scale_factor,
+        y=height * scale_factor,
+        sizey=height * scale_factor,
+        xref="x",
+        yref="y",
+        opacity=1.0,
+        layer="below",
+        sizing="stretch",
+    )
+)
+
+
+'''map_plot = base64.b64encode(open(image_filename, 'rb').read())
 
 fig2.update_layout(
                 title = "Animation of message locations for each hour, heuristics",
@@ -199,7 +371,7 @@ fig2.update_layout(
                     yanchor="bottom",
                     sizing="fill",
                     opacity=0.6,
-                    layer="below")])
+                    layer="below")])'''
 
-fig2.show()
+fig.show()
 

@@ -77,14 +77,14 @@ with open("filtered_first_case.txt", "w") as file:
     for line in lines:
         file.write(f"{line}\n")
 
-
-with open("filtered_first_case.txt", "w") as file:
+'''
+with open("filtered_first_case_manual.txt", "w") as file:
     for time in sorted_times:
-        file.write(f"{time}:\n")
+        file.write(f"{time}\n")
         for message in messages[time]:
             file.write(f"{message}\n")
 
-
+'''
 '''
 with open("filtered_coords.txt", "w") as file:
     for line in coords:

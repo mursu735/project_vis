@@ -20,14 +20,15 @@ wv = new_model.wv
 
 #wv = api.load('glove-twitter-100')
 
-
+word = "fever"
 
 #wv.evaluate_word_pairs('MC_1_Materials_3-30-2011/Microblogs.csv')
 
-words = wv.most_similar(positive=['sinuses'], topn=100)
+words = wv.most_similar(positive=[f"{word}"], topn=100)
 
-for asd in words:
-    print(asd)
+with open(f"similar_own_model_{word}.txt", "w") as f:
+    for asd in words:
+        f.write(f"{asd}\n")
 
 # sick -> fever
 # fever -> headache, pneumonia, sweats, fatigue, flu, chills, heartburn, nausea, cramps, cold, cough, aching, breath, diarrhea, insomnia, unwell, vomitting
