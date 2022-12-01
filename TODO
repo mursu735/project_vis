@@ -17,7 +17,11 @@ Piechart, different symptoms, animation subplots
 Summarize by Each district, proportion, bar chart, use edited map to figure out the district, then plot them accordingly based on symptoms (DONE)
 
 NEW:
-Change barchart to dynamic range, should be doable (DONE)
 Find the very first case (probably in Smogtown, Plainville, Downtown)
 Write a report so far
 
+Fix barchart y-axis
+Split times into coarser periods for bar chart (am, pm, etc.), filter interesting areas, select interesting times, temporal analysis of patterns
+Normalize number of symptom-related messages with messages (per space area)
+Automate process to find spike, line chart of normalized number of symptoms against the number of total messages, subplots
+Compare messages in Smogtown before outbreak

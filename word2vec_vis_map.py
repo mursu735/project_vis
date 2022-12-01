@@ -20,6 +20,7 @@ west_end = 93.1923
 width = 5216
 height = 2653
 scale_factor = 0.5
+marker_size = 8
 image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map.png"
 separator = ":^:"
 symptom1 = word2vec_helpers.get_disease_1_symptoms()
@@ -27,9 +28,6 @@ symptom2 = word2vec_helpers.get_disease_2_symptoms()
 
 fig = go.Figure()
 
-x_arr = []
-y_arr = []
-dates = []
 counter = -1
 pattern = re.compile("^[4-5]\/[0-3]?[0-9]\/2011$")
 
@@ -110,7 +108,7 @@ frames=[
                 name=f"Symptom group 1: {symptom1}",
                 mode="markers",
                 marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="red",
                     opacity=0.5
                 )
@@ -122,7 +120,7 @@ frames=[
                 name=f"Symptom group 2: {symptom2}",
                 mode="markers",
                 marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="blue",
                     opacity=0.5
                 )
@@ -134,7 +132,7 @@ frames=[
             name="Other symptoms",
             mode="markers",
             marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="black",
                     opacity=0.5
                 )
@@ -180,7 +178,7 @@ fig = go.Figure(
                 name=f"Symptom group 1: {symptom1}",
                 mode="markers",
                 marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="red",
                     opacity=0.5
                 )
@@ -192,7 +190,7 @@ fig = go.Figure(
                 name=f"Symptom group 2: {symptom2}",
                 mode="markers",
                 marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="blue",
                     opacity=0.5
                 )
@@ -204,7 +202,7 @@ fig = go.Figure(
                 name="Other symptoms",
                 mode="markers",
                 marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="black",
                     opacity=0.5
                 )
@@ -275,7 +273,7 @@ fig.add_layout_image(
         sizey=height * scale_factor,
         xref="x",
         yref="y",
-        opacity=1.0,
+        opacity=0.7,
         layer="below",
         sizing="stretch",
     )
@@ -287,160 +285,4 @@ fig.update_layout(
     margin={"l": 0, "r": 0, "t": 0, "b": 0},
 )
 
-'''fig.update_layout(
-    title = "Animation of message locations for each hour, heuristics",
-    #autosize=False,
-    #width=width,
-    #height=height,
-    images = [dict(
-        source='data:image/png;base64,{}'.format(map_plot.decode()),
-        xref="paper", yref="paper",
-        x=0,
-        sizex=width * scale_factor,
-        y=0,
-        sizey=height * scale_factor,
-        xanchor="left",
-        yanchor="bottom",
-        sizing="fill",
-        opacity=0.6,
-        layer="below")],
-        #margin=dict(l=20, r=20, t=40, b=10),
-        #paper_bgcolor="LightSteelBlue",
-    )
-'''
-'''        legend=dict(
-            yanchor="top",
-            y=0.99,
-            xanchor="left",
-            x=0.01
-        ),'''
-        
-
 fig.show()
-
-
-'''
-fig_dict = {
-    "data": [],
-    "layout": {},
-    "frames": []
-}
-
-fig_dict["layout"]["xaxis"] = {"range": [0, width], "autorange": False}
-fig_dict["layout"]["yaxis"] = {"range": [0, height], "autorange": False}
-fig_dict["layout"]["updatemenus"] = [
-    {
-        "buttons": [
-            {
-                "label": "play",
-                "method": "animate",
-                "args": [None,
-                {
-                    "frame": {"duration": 1000, "redraw": False},
-                    "fromcurrent": True,
-                    "mode": "immediate",
-                    "transition": {"duration": 0}
-                }]
-            },
-            {
-                "label": "Pause",
-                "method": "animate",
-                "args": [
-                    [None],
-                    {
-                        "frame": {"duration": 0, "redraw": False},
-                        "mode": "immediate",
-                        "transition": {"duration": 0}
-                    }
-                ]
-            }
-        ]
-    }
-]
-
-sliders_dict = {
-    "active": 0,
-    "yanchor": "top",
-    "xanchor": "left",
-    "currentvalue": {
-        "font": {"size": 20},
-        "prefix": "Date:",
-        "visible": True,
-        "xanchor": "right"
-    },
-    "transition": {"duration": 200, "easing": "cubic-in-out"},
-    "pad": {"b": 100, "t": 100},
-    "len": 0.9,
-    "x": 0.1,
-    "y": 0,
-    "steps": []
-}
-
-data_dict = {
-    "x": coords_map[unique_times_sorted[0]]["x"],
-    "y": coords_map[unique_times_sorted[0]]["y"],
-    "text": coords_map[unique_times_sorted[0]]["text"],
-    "mode": "markers",
-    "marker": {
-        "size": 5,
-        "color": coords_map[unique_times_sorted[0]]["label"],
-        "opacity": 0.5
-    }
-}
-
-fig_dict["data"].append(data_dict)
-'''
-'''
-start_time = datetime(2011, 5, 17, 0, 0)
-
-unique_times_sorted = unique_times_sorted[unique_times_sorted.index(start_time):]
-'''
-'''
-for time in unique_times_sorted:
-    name = time.strftime('%m/%d/%Y %H:%M')
-    frame = {"data": [], "name": name}
-    data_dict = {
-        "x": coords_map[time]["x"],
-        "y": coords_map[time]["y"],
-        "text": coords_map[time]["text"],
-        "mode": "markers",
-        "marker": {
-            "size": 5,
-            "color": coords_map[time]["label"],
-            "opacity": 0.5
-        }
-    }
-    frame["data"].append(data_dict)
-
-    fig_dict["frames"].append(frame)
-    slider_step = {"args": [
-        [name],
-        {"frame": {"duration": 0, "redraw": False},
-         "mode": "immediate",
-         "transition": {"duration": 0}}
-    ],
-        "label": name,
-        "method": "animate"}
-    sliders_dict["steps"].append(slider_step)
-    
-fig_dict["layout"]["sliders"] = [sliders_dict]
-
-fig2 = go.Figure(fig_dict)
-
-map_plot = base64.b64encode(open(image_filename, 'rb').read())
-
-fig2.update_layout(
-                title = "Animation of message locations for each hour, heuristics",
-                images = [dict(
-                    source='data:image/png;base64,{}'.format(map_plot.decode()),
-                    xref="paper", yref="paper",
-                    x=0, y=0,
-                    sizex=1, sizey=1,
-                    xanchor="left",
-                    yanchor="bottom",
-                    sizing="fill",
-                    opacity=0.6,
-                    layer="below")])
-
-fig2.show()
-'''

@@ -56,19 +56,19 @@ with open('MC_1_Materials_3-30-2011/Microblogs.csv') as csvfile:
                     times.append(time)
                 pos = row["Location"]
                 x, y = word2vec_helpers.get_coords_in_pixels(pos)
-                # PIL has origin in top-left, convert bottom-left origin to this
+                # PIL has origin in top-left, convert bottom-left origin to this, then fetch pixel color
                 y_tl = word2vec_helpers.get_height() - y - 1
                 color = np.array(pix[x, y_tl])
-                asd = target_area - color
+                asd = target_area - color[:3] # Some pixels return [r, g, b, alpha], get rid of alpha
                 sum = asd.sum()
                 if sum == 0:
                     messages[time].append(row["text"])
                     total += 1
                     text = row["Created_at"] + separator + row["Location"] + separator + row["text"]
                     lines.append(text)
-        except ValueError:
+        except ValueError as e:
             text = row["text"]
-            print(f"Invalid date: {time}, message: {text}")
+            print(f"{e}, message: {text}")
 
 sorted_times = sorted(times)
 

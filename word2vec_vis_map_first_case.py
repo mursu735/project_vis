@@ -20,6 +20,7 @@ west_end = 93.1923
 width = 5216
 height = 2653
 scale_factor = 0.5
+marker_size = 8
 image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map.png"
 edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited.png"
 separator = ":^:"
@@ -135,9 +136,9 @@ frames=[
                 name=f"Symptom group 1: {symptom1}",
                 mode="markers",
                 marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="red",
-                    opacity=0.5
+                    opacity=1
                 )
             ),
             go.Scatter(
@@ -147,9 +148,9 @@ frames=[
                 name=f"Symptom group 2: {symptom2}",
                 mode="markers",
                 marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="blue",
-                    opacity=0.5
+                    opacity=1
                 )
             ),
             go.Scatter(
@@ -159,9 +160,9 @@ frames=[
             name=f"Other symptoms: {other_symptoms}",
             mode="markers",
             marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="yellow",
-                    opacity=0.5
+                    opacity=1
                 )
             ),
             go.Scatter(
@@ -171,7 +172,7 @@ frames=[
             name="No symptoms",
             mode="markers",
             marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="black",
                     opacity=0.5
                 )
@@ -217,9 +218,9 @@ fig = go.Figure(
                 name=f"Symptom group 1: {symptom1}",
                 mode="markers",
                 marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="red",
-                    opacity=0.5
+                    opacity=1
                 )
             ),
             go.Scatter(
@@ -229,9 +230,9 @@ fig = go.Figure(
                 name=f"Symptom group 2: {symptom2}",
                 mode="markers",
                 marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="blue",
-                    opacity=0.5
+                    opacity=1
                 )
             ),
             go.Scatter(
@@ -241,9 +242,9 @@ fig = go.Figure(
                 name=f"Other symptoms: {other_symptoms}",
                 mode="markers",
                 marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="yellow",
-                    opacity=0.5
+                    opacity=1
                 )
             ),
             go.Scatter(
@@ -253,7 +254,7 @@ fig = go.Figure(
             name="No symptoms",
             mode="markers",
             marker=dict(
-                    size=8,
+                    size=marker_size,
                     color="black",
                     opacity=0.5
                 )
@@ -324,7 +325,7 @@ fig.add_layout_image(
         sizey=height * scale_factor,
         xref="x",
         yref="y",
-        opacity=1.0,
+        opacity=0.7,
         layer="below",
         sizing="stretch",
     )
@@ -336,42 +337,6 @@ fig.update_layout(
     margin={"l": 0, "r": 0, "t": 0, "b": 0},
 )
 
-#print(coords_map)
-
-# print(sorted)
-
-im = Image.open(image_filename) # Can be many different formats.
-
-fig.add_layout_image(
-    dict(
-        source=im,
-        x=0,
-        sizex=width * scale_factor,
-        y=height * scale_factor,
-        sizey=height * scale_factor,
-        xref="x",
-        yref="y",
-        opacity=1.0,
-        layer="below",
-        sizing="stretch",
-    )
-)
-
-
-'''map_plot = base64.b64encode(open(image_filename, 'rb').read())
-
-fig2.update_layout(
-                title = "Animation of message locations for each hour, heuristics",
-                images = [dict(
-                    source='data:image/png;base64,{}'.format(map_plot.decode()),
-                    xref="paper", yref="paper",
-                    x=0, y=0,
-                    sizex=1, sizey=1,
-                    xanchor="left",
-                    yanchor="bottom",
-                    sizing="fill",
-                    opacity=0.6,
-                    layer="below")])'''
 
 fig.show()
 
