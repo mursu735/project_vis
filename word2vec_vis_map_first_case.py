@@ -130,6 +130,18 @@ frames=[
     go.Frame(
         data=[
             go.Scatter(
+            x=coords_map[time]["Filling"]["x"],
+            y=coords_map[time]["Filling"]["y"],
+            text=coords_map[time]["Filling"]["text"],
+            name="No symptoms",
+            mode="markers",
+            marker=dict(
+                    size=marker_size,
+                    color="black",
+                    opacity=0.5
+                )
+            ),
+            go.Scatter(
                 x=coords_map[time]["Symptom1"]["x"],
                 y=coords_map[time]["Symptom1"]["y"],
                 text=coords_map[time]["Symptom1"]["text"],
@@ -163,18 +175,6 @@ frames=[
                     size=marker_size,
                     color="yellow",
                     opacity=1
-                )
-            ),
-            go.Scatter(
-            x=coords_map[time]["Filling"]["x"],
-            y=coords_map[time]["Filling"]["y"],
-            text=coords_map[time]["Filling"]["text"],
-            name="No symptoms",
-            mode="markers",
-            marker=dict(
-                    size=marker_size,
-                    color="black",
-                    opacity=0.5
                 )
             ),
             go.Scatter(
@@ -212,6 +212,18 @@ sliders = [dict(
 fig = go.Figure(
     data=[
         go.Scatter(
+            x=coords_map[time]["Filling"]["x"],
+            y=coords_map[time]["Filling"]["y"],
+            text=coords_map[time]["Filling"]["text"],
+            name="No symptoms",
+            mode="markers",
+            marker=dict(
+                    size=marker_size,
+                    color="black",
+                    opacity=0.5
+                )
+            ),
+        go.Scatter(
                 x=coords_map[unique_times_sorted[0]]["Symptom1"]["x"],
                 y=coords_map[unique_times_sorted[0]]["Symptom1"]["y"],
                 text=coords_map[unique_times_sorted[0]]["Symptom1"]["text"],
@@ -245,18 +257,6 @@ fig = go.Figure(
                     size=marker_size,
                     color="yellow",
                     opacity=1
-                )
-            ),
-            go.Scatter(
-            x=coords_map[time]["Filling"]["x"],
-            y=coords_map[time]["Filling"]["y"],
-            text=coords_map[time]["Filling"]["text"],
-            name="No symptoms",
-            mode="markers",
-            marker=dict(
-                    size=marker_size,
-                    color="black",
-                    opacity=0.5
                 )
             ),
             go.Scatter(

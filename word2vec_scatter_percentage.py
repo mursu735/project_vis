@@ -1,8 +1,9 @@
 import numpy as np
 import plotly.graph_objects as go
 import math
-from datetime import datetime
+from datetime import datetime, time
 from PIL import Image
+import pandas as pd
 import word2vec_helpers
 
 north_end = 42.3017
@@ -14,6 +15,7 @@ width = 5216
 height = 2653
 image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map.png"
 edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited.png"
+population_csv = "MC_1_Materials_3-30-2011/Population.csv"
 symptom1 = word2vec_helpers.get_disease_1_symptoms()
 symptom2 = word2vec_helpers.get_disease_2_symptoms()
 other_symptoms = []
@@ -26,6 +28,13 @@ sizex, sizey = im.size
 # Each row correponds to RGB color on edited map, used to group the symptoms
 colors = np.array(([255, 239, 54], [54, 206, 78], [254, 200, 54], [61, 79, 201], [180, 70, 184], [148, 254, 250], [236, 36, 45], [249, 42, 181], [133, 7, 30], [253, 235, 170], [88, 88, 88], [125, 61, 251], [251, 127, 54]))
 districts = ["Cornertown", "Northville", "Villa", "Westside", "Smogtown", "Plainville", "Downtown", "Uptown", "Riverside", "Southville", "Lakeside", "Eastside", "Suburbia"]
+symbols = ['circle', 'square', 'diamond', 'cross', 'triangle-up', 'pentagon', 'hexagram', 'star-triangle-down', 'diamond-wide', 'asterisk', 'x-dot', 'diamond-wide-dot', 'y-up-open']
+
+reader = pd.read_csv("MC_1_Materials_3-30-2011/Population.csv", sep=",", header=0)
+reader = reader.set_index("Zone_Name")
+# Have the same order as zone list above
+reader = reader.reindex(districts)
+
 
 row = 0
 times = []
@@ -38,16 +47,18 @@ for element in tmp:
     if element not in symptom1 and element not in symptom2:
         other_symptoms.append(element)
 
+#reader = pd.read_csv(csvfile, sep=",", header=0, usecols=["Created_at", "text", "Location"])
+
 with open("filtered2.txt") as file:
     for line in file.readlines():
         line = line.replace("\n", "")
-        time = datetime.strptime(line, '%m/%d/%Y %H:%M').replace(minute=0)
-        times.append(time)
-        if time not in counts:
-            counts[time] = 1
-            unique_times.append(time)
+        timestamp = datetime.strptime(line, '%m/%d/%Y %H:%M').replace(minute=0)
+        times.append(timestamp)
+        if timestamp not in counts:
+            counts[timestamp] = 1
+            unique_times.append(timestamp)
         else:
-            counts[time] += 1
+            counts[timestamp] += 1
 
 counts = np.loadtxt("msgs_by_time_and_area.txt")
 text_file = open("times.txt", "r")
@@ -55,18 +66,21 @@ lines = text_file.readlines()
 
 count = 0
 for i in lines:
-    time = i.replace("\n", "")
-    time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
-    lines[count] = time
+    timestamp = i.replace("\n", "")
+    timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+    lines[count] = timestamp
     count += 1
 
 counts_by_time = dict(zip(lines, counts))
+
+commute_start = time(9, 0, 0)
+commute_end = time(17, 0, 0)
 
 #Index tells the town part,
 with open("filtered_coords.txt") as file:
     for line in file.readlines():
         line = line.replace("\n", "")
-        time = times[row]
+        timestamp = times[row]
         # Match coordinate and time, use the previously read times as guidance
         splitted = line.split(separator)
         coord = splitted[0]
@@ -74,20 +88,19 @@ with open("filtered_coords.txt") as file:
         x, y = word2vec_helpers.get_coords_in_pixels(coord)
         x = min(x, sizex - 1)
         y = min(y, sizey - 1)
-        if time not in coords_map:
-            coords_map[time] = {"Symptom 1": np.zeros(13), "Symptom 2": np.zeros(13), "Other symptoms": np.zeros(13)}
+        if timestamp not in coords_map:
+            coords_map[timestamp] = {"Symptom 1": np.zeros(13), "Symptom 2": np.zeros(13), "Other symptoms": np.zeros(13)}
         y_tl = word2vec_helpers.get_height() - y - 1
         pixel = pix[x, y_tl]
         asd = colors - pixel
         index = np.argmin(np.absolute(asd.sum(axis=1)))
         if any(symptom in text for symptom in symptom1):
-            coords_map[time]["Symptom 1"][index] += 1
+            coords_map[timestamp]["Symptom 1"][index] += 1
         elif any(symptom in text for symptom in symptom2):
-            coords_map[time]["Symptom 2"][index] += 1
+            coords_map[timestamp]["Symptom 2"][index] += 1
         else:
-            coords_map[time]["Other symptoms"][index] += 1
+            coords_map[timestamp]["Other symptoms"][index] += 1
         row += 1
-
 
 unique_times_sorted = sorted(unique_times)
 
@@ -97,43 +110,55 @@ unique_times_sorted = unique_times_sorted[unique_times_sorted.index(start_time):
 
 final_map = {}
 
-# Normalize by total number of messages during the hour
-for time in unique_times_sorted:
-    final_map[time] = {
-        "Symptom 1": coords_map[time]["Symptom 1"] / counts_by_time[time],
-        "Symptom 2": coords_map[time]["Symptom 2"] / counts_by_time[time],
-        "Other symptoms": coords_map[time]["Other symptoms"] / counts_by_time[time]
+for timestamp in unique_times_sorted:
+    final_map[timestamp] = {
+        "Symptom 1": coords_map[timestamp]["Symptom 1"] / counts_by_time[timestamp],
+        "Symptom 2": coords_map[timestamp]["Symptom 2"] / counts_by_time[timestamp],
+        "Other symptoms": coords_map[timestamp]["Other symptoms"] / counts_by_time[timestamp],
+        "Population": reader["Daytime_Population"].values if commute_start <= timestamp.time() <= commute_end else reader["Population_Density"].values
     }
 
 
 frames=[
     go.Frame(
         data=[
-            go.Bar(
-                x=districts,
-                y=final_map[time]["Symptom 1"],
-                name=f"Symptom group 1: {symptom1}"
+            go.Scatter(
+                x=final_map[timestamp]["Population"],
+                y=final_map[timestamp]["Symptom 1"],
+                name=f"Symptom group 1: {symptom1}",
+                mode="markers+text",
+                text=districts,
+                textposition="top center",
+                marker_symbol=symbols
             ),
-            go.Bar(
-                x=districts,
-                y=final_map[time]["Symptom 2"],
-                name=f"Symptom group 2: {symptom2}"
+            go.Scatter(
+                x=final_map[timestamp]["Population"],
+                y=final_map[timestamp]["Symptom 2"],
+                name=f"Symptom group 2: {symptom2}",
+                mode="markers+text",
+                text=districts,
+                textposition="top center",
+                marker_symbol=symbols
             ),
-            go.Bar(
-            x=districts,
-            y=final_map[time]["Other symptoms"],
-            name=f"Other symptoms: {other_symptoms}"
-        )
+            go.Scatter(
+                x=final_map[timestamp]["Population"],
+                y=final_map[timestamp]["Other symptoms"],
+                name=f"Other symptoms: {other_symptoms}",
+                mode="markers+text",
+                text=districts,
+                textposition="top center",
+                marker_symbol=symbols
+            )
         ],
-        name=time.strftime('%m/%d/%Y %H:%M')
+        name=timestamp.strftime('%m/%d/%Y %H:%M')
     )
-    for time in unique_times_sorted]
+    for timestamp in unique_times_sorted]
 
 
 steps = []
 for i in range(len(unique_times_sorted)):
-    time = unique_times_sorted[i]
-    name = time.strftime('%m/%d/%Y %H:%M')
+    timestamp = unique_times_sorted[i]
+    name = timestamp.strftime('%m/%d/%Y %H:%M')
     step = dict(
         method="animate",
         args=[
@@ -154,20 +179,32 @@ sliders = [dict(
 # Defining figure
 fig = go.Figure(
     data=[
-        go.Bar(
-            x=districts,
+        go.Scatter(
+            x=final_map[timestamp]["Population"],
             y=final_map[unique_times_sorted[0]]["Symptom 1"],
-            name=f"Symptom group 1: {symptom1}"
+            name=f"Symptom group 1: {symptom1}",
+            mode="markers+text",
+            text=districts,
+            textposition="top center",
+            marker_symbol=symbols
         ),
-        go.Bar(
-            x=districts,
+        go.Scatter(
+            x=final_map[timestamp]["Population"],
             y=final_map[unique_times_sorted[0]]["Symptom 2"],
-            name=f"Symptom group 2: {symptom2}"
+            name=f"Symptom group 2: {symptom2}",
+            mode="markers+text",
+            text=districts,
+            textposition="top center",
+            marker_symbol=symbols
         ),
-        go.Bar(
-            x=districts,
+        go.Scatter(
+            x=final_map[timestamp]["Population"],
             y=final_map[unique_times_sorted[0]]["Other symptoms"],
-            name="Other symptoms"
+            name=f"Other symptoms: {other_symptoms}",
+            mode="markers+text",
+            text=districts,
+            textposition="top center",
+            marker_symbol=symbols
         )
     ],
     layout=go.Layout( # Styling
@@ -199,7 +236,7 @@ fig = go.Figure(
     frames=frames
 )
 
-fig.update_layout(barmode='stack', xaxis_tickangle=-45, sliders=sliders, yaxis_range=[0.0, 1.0])
+fig.update_layout(sliders=sliders, yaxis_range=[0.0, 1.0])
 
 
 '''yranges = {}

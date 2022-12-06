@@ -29,11 +29,11 @@ def check_if_separator_is_used(separator):
 
 # If the position and date is in the area of interest, save it, otherwise skip it
 target_area = np.array([63, 72, 204])
-start_time = datetime(2011, 5, 17, 0, 0)
+start_time = datetime(2011, 5, 16, 0, 0)
 end_time = datetime(2011, 5, 18, 0, 0)
 
 separator = ':^:'
-edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited_first_case_mod.png"
+edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited_first_case_mod2.png"
 im = Image.open(edited_image_filename) # Can be many different formats.
 pix = im.load()
 
