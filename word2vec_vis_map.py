@@ -211,7 +211,11 @@ fig = go.Figure(
                 x=[0, width * scale_factor],
                 y=[0, height * scale_factor],
                 mode="markers",
-                marker_opacity=0
+                name="",
+                marker_opacity=0,
+                marker=dict(
+                    color="white"
+                )
             )
     ],
     layout=go.Layout( # Styling
@@ -286,3 +290,5 @@ fig.update_layout(
 )
 
 fig.show()
+
+fig.write_html("server/map_plot.html", auto_play=False, include_plotlyjs="cdn")

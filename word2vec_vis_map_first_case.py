@@ -337,6 +337,6 @@ fig.update_layout(
     margin={"l": 0, "r": 0, "t": 0, "b": 0},
 )
 
-
 fig.show()
 
+#fig.write_html("server/bar_chart_simple.html", auto_play=False, include_plotlyjs="cdn")

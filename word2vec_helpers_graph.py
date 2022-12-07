@@ -212,3 +212,5 @@ def create_heatmap(matrix, word_list, text):
     fig2.update_layout(title = text)
 
     fig2.show()
+
+    return fig2

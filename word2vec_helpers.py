@@ -35,7 +35,7 @@ def get_disease_1_symptoms():
     return ["flu", "sweats", "chills", "pneumonia", "fatigue", "headache", "cold", "fever"]
 
 def get_disease_2_symptoms():
-    return ["diarrhea", "nausea", "heartburn", "cramps", "vomit"]
+    return ["diarrhea", "nausea", "heartburn", "cramps"]
 
 def get_width():
     return 5216

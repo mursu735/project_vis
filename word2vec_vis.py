@@ -199,3 +199,6 @@ fig.add_trace(go.Bar(
 ))
 
 fig.show()
+
+fig.write_html("server/bar_chart_simple.html", auto_play=False, include_plotlyjs="cdn")
+

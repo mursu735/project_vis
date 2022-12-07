@@ -33,7 +33,7 @@ start_time = datetime(2011, 5, 16, 0, 0)
 end_time = datetime(2011, 5, 18, 0, 0)
 
 separator = ':^:'
-edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited_first_case_mod2.png"
+edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited_first_case_mod.png"
 im = Image.open(edited_image_filename) # Can be many different formats.
 pix = im.load()
 
