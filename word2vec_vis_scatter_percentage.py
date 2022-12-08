@@ -26,9 +26,9 @@ pix = im.load()
 sizex, sizey = im.size
 
 # Each row correponds to RGB color on edited map, used to group the symptoms
-colors = np.array(([255, 239, 54], [54, 206, 78], [254, 200, 54], [61, 79, 201], [180, 70, 184], [148, 254, 250], [236, 36, 45], [249, 42, 181], [133, 7, 30], [253, 235, 170], [88, 88, 88], [125, 61, 251], [251, 127, 54]))
+colors = np.array(([255, 242, 0], [14, 206, 69], [255, 202, 24], [63, 72, 204], [184, 61, 186], [140, 255, 251], [236, 28, 36], [255, 13, 182], [136, 0, 27], [253, 236, 166], [88, 88, 88], [129, 39, 255], [255, 127, 39]))
 districts = ["Cornertown", "Northville", "Villa", "Westside", "Smogtown", "Plainville", "Downtown", "Uptown", "Riverside", "Southville", "Lakeside", "Eastside", "Suburbia"]
-symbols = ['circle', 'square', 'diamond', 'cross', 'triangle-up', 'pentagon', 'hexagram', 'star-triangle-down', 'diamond-wide', 'asterisk', 'x-dot', 'diamond-wide-dot', 'y-up-open']
+symbols = ['circle', 'square', 'diamond', 'cross', 'triangle-up', 'pentagon', 'hexagram', 'star-triangle-down', 'diamond-wide', 'hexagon', 'x-dot', 'diamond-wide-dot', 'y-up-open']
 
 reader = pd.read_csv("MC_1_Materials_3-30-2011/Population.csv", sep=",", header=0)
 reader = reader.set_index("Zone_Name")
@@ -243,7 +243,8 @@ for i in range(0, len(districts)):
             y=[None],
             name=districts[i],
             mode="markers",
-            marker_symbol=symbols[i]
+            marker_symbol=symbols[i],
+            marker_color="black"
         )
     )
 
@@ -271,6 +272,8 @@ for f in fig.frames:
 
 
 fig.show()
+
+#fig.write_html("server/bar_chart_simple.html", auto_play=False, include_plotlyjs="cdn")
 
 # Cornertown = [255, 239, 54]
 # Northville = [54, 206, 78]
