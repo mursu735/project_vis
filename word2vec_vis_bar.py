@@ -24,7 +24,7 @@ pix = im.load()
 sizex, sizey = im.size
 
 # Each row correponds to RGB color on edited map, used to group the symptoms
-colors = np.array(([255, 242, 0], [14, 206, 69], [255, 202, 24], [63, 72, 204], [184, 61, 186], [140, 255, 251], [236, 28, 36], [255, 13, 182], [136, 0, 27], [253, 236, 166], [88, 88, 88], [129, 39, 255], [255, 127, 39]))
+colors = word2vec_helpers.get_district_colors()
 districts = ["Cornertown", "Northville", "Villa", "Westside", "Smogtown", "Plainville", "Downtown", "Uptown", "Riverside", "Southville", "Lakeside", "Eastside", "Suburbia"]
 
 row = 0

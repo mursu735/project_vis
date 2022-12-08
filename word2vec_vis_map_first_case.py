@@ -46,10 +46,11 @@ with open("filtered_first_case.txt") as file:
         line = line.replace("\n", "")
         # Match coordinate and time, use the previously read times as guidance
         splitted = line.split(separator)
-        time_precise = datetime.strptime(splitted[0], '%m/%d/%Y %H:%M')
+        group = splitted[0]
+        time_precise = datetime.strptime(splitted[1], '%m/%d/%Y %H:%M')
         time = time_precise.replace(minute=0)
-        coord = splitted[1]
-        text = coord + " / " + splitted[2]
+        coord = splitted[2]
+        text = coord + " / " + splitted[3]
 
         x_interpolate, y_interpolate = word2vec_helpers.get_coords_in_pixels(coord)
         if time not in coords_map:
@@ -59,7 +60,7 @@ with open("filtered_first_case.txt") as file:
                                 "Filling": {"x": [], "y": [], "text": []}}
             unique_times.append(time)
 
-        if any(symptom in text for symptom in symptom1):
+        if group == "Symptom 1":
             coords_map[time]["Symptom1"]["x"].append(x_interpolate * scale_factor)
             coords_map[time]["Symptom1"]["y"].append(y_interpolate * scale_factor)
             coords_map[time]["Symptom1"]["text"].append(text)
@@ -69,7 +70,7 @@ with open("filtered_first_case.txt") as file:
             asd = "Symptom 1: " + text
             interesting_messages[time_precise].append(asd)
             #coords_map[time]["label"].append("red")
-        elif any(symptom in text for symptom in symptom2):
+        elif group == "Symptom 2":
             coords_map[time]["Symptom2"]["x"].append(x_interpolate * scale_factor)
             coords_map[time]["Symptom2"]["y"].append(y_interpolate * scale_factor)
             coords_map[time]["Symptom2"]["text"].append(text)
@@ -79,7 +80,7 @@ with open("filtered_first_case.txt") as file:
             asd = "Symptom 2: " + text
             interesting_messages[time_precise].append(asd)
             #coords_map[time]["label"].append("blue")
-        elif any(symptom in text for symptom in other_symptoms):
+        elif group == "Other":
             coords_map[time]["Other"]["x"].append(x_interpolate * scale_factor)
             coords_map[time]["Other"]["y"].append(y_interpolate * scale_factor)
             coords_map[time]["Other"]["text"].append(text)

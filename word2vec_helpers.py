@@ -29,7 +29,7 @@ def get_word_list():
     #return ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomit", "diarrhea"]
     # return ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
     # return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breath", "diarrhea", "insomnia", "unwell", "vomit"]
-    return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breath", "diarrhea", "insomnia", "unwell", "vomit", "sick"]
+    return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breathe", "diarrhea", "insomnia", "unwell", "vomit", "sick", "ache"]
 
 def get_disease_1_symptoms():
     return ["flu", "sweats", "chills", "pneumonia", "fatigue", "headache", "cold", "fever"]
@@ -42,6 +42,9 @@ def get_width():
 
 def get_height():
     return 2653
+
+def get_district_colors():
+    return np.array(([255, 242, 0], [14, 206, 69], [255, 202, 24], [63, 72, 204], [184, 61, 186], [140, 255, 251], [236, 28, 36], [255, 13, 182], [136, 0, 27], [253, 236, 166], [88, 88, 88], [129, 39, 255], [255, 127, 39]))
 
 def get_image_name():
     return "MC_1_Materials_3-30-2011/Vastopolis_Map.png"
@@ -58,5 +61,5 @@ def get_coords_in_pixels(coord):
 
 def determine_message_location(image, message):
     # Each row correponds to RGB color on edited map, used to group the symptoms
-    colors = np.array(([255, 239, 54], [54, 206, 78], [254, 200, 54], [61, 79, 201], [180, 70, 184], [148, 254, 250], [236, 36, 45], [249, 42, 181], [133, 7, 30], [253, 235, 170], [88, 88, 88], [125, 61, 251], [251, 127, 54]))
+    colors = get_district_colors()
     districts = ["Cornertown", "Northville", "Villa", "Westside", "Smogtown", "Plainville", "Downtown", "Uptown", "Riverside", "Southville", "Lakeside", "Eastside", "Suburbia"]

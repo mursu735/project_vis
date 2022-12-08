@@ -23,7 +23,7 @@ wv = new_model.wv
 
 #wv = api.load('glove-twitter-100')
 
-word = "dead"
+'''word = "dead"
 
 nltk.download('wordnet')
 nltk.download('omw-1.4')
@@ -40,8 +40,15 @@ print("corpora :", lemmatizer.lemmatize("corpora"))
 
 # a denotes adjective in "pos"
 print("better :", lemmatizer.lemmatize("better", pos ="a"))
-
 '''
+
+vocab = wv.index_to_key
+count = 0
+total = len(vocab)
+word_list = {}
+#print(vocab)
+
+
 with open("similar_words/word_list.txt", "w") as file:
     for word in vocab:
         print(f"{count}/{total}", end='\r')
@@ -56,7 +63,7 @@ with open("similar_words/similar_words.txt", "w") as file:
         print(f"{count}/{total}", end='\r')
         file.write(f"{k}: {v}\n")
         count += 1
-'''
+
 #wv.evaluate_word_pairs('MC_1_Materials_3-30-2011/Microblogs.csv')
 '''
 words = wv.most_similar(positive=[f"{word}"], topn=100)

@@ -25,3 +25,5 @@ Split times into coarser periods for bar chart (am, pm, etc.), filter interestin
 Normalize number of symptom-related messages with messages (per space area)
 Automate process to find spike, line chart of normalized number of symptoms against the number of total messages, subplots
 Compare messages in Smogtown before outbreak
+
+Find the case for each of the three phenomenon (lemmatize words, possibly generate word cloud for different days, look into word sense disambiguation)
