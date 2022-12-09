@@ -198,7 +198,11 @@ fig.add_trace(go.Bar(
     y=y
 ))
 
+fig.update_layout(
+    title="Number of sickness-related messages by each hour"
+)
+
 fig.show()
 
-fig.write_html("server/bar_chart_simple.html", auto_play=False, include_plotlyjs="cdn")
+#fig.write_html("server/bar_chart_simple.html", auto_play=False, include_plotlyjs="cdn")
 

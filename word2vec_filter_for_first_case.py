@@ -46,15 +46,17 @@ def nltk_tag_to_wordnet_tag(nltk_tag):
 # If the position and date is in the area of interest, save it, otherwise skip it
 target_area = np.array([63, 72, 204])
 start_time = datetime(2011, 5, 16, 0, 0)
-end_time = datetime(2011, 5, 18, 0, 0)
+end_time = datetime(2011, 5, 19, 0, 0)
 
 separator = ':^:'
 edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited_first_case_mod.png"
 im = Image.open(edited_image_filename) # Can be many different formats.
 pix = im.load()
+sizex, sizey = im.size
 
 symptom1 = word2vec_helpers.get_disease_1_symptoms()
 symptom2 = word2vec_helpers.get_disease_2_symptoms()
+blacklist = word2vec_helpers.get_blacklist()
 other_symptoms = []
 tmp = word2vec_helpers.get_word_list()
 
@@ -62,6 +64,7 @@ for element in tmp:
     if element not in symptom1 and element not in symptom2:
         other_symptoms.append(element)
 
+print(other_symptoms)
 messages = {}
 total = 0
 
@@ -77,7 +80,7 @@ nltk.download('averaged_perceptron_tagger')
 lemmatizer = WordNetLemmatizer()
 
 #with open('MC_1_Materials_3-30-2011/Microblogs.csv') as csvfile:
-reader = pd.read_csv('MC_1_Materials_3-30-2011/Microblogs.csv', sep=",", header=0, usecols=["Created_at", "text", "Location"])
+reader = pd.read_csv('MC_1_Materials_3-30-2011/Microblogs.csv', sep=",", header=0, usecols=["ID", "Created_at", "text", "Location"])
 print(reader)
 total = len(reader.index)
 count = 0
@@ -92,11 +95,14 @@ for index, row in reader.iterrows():
                 times.append(time)
             pos = row["Location"]
             x, y = word2vec_helpers.get_coords_in_pixels(pos)
+            x = min(x, sizex - 1)
+            y = min(y, sizey - 1)
             # PIL has origin in top-left, convert bottom-left origin to this, then fetch pixel color
             y_tl = word2vec_helpers.get_height() - y - 1
             color = np.array(pix[x, y_tl])
             asd = target_area - color[:3] # Some pixels return [r, g, b, alpha], get rid of alpha
             sum = asd.sum()
+            # if sum == 0:
             prefix = ""
             nltk_tagged = nltk.pos_tag(nltk.word_tokenize(row["text"]))
             #tuple of (token, wordnet_tag)
@@ -111,18 +117,21 @@ for index, row in reader.iterrows():
                     lemmatized_sentence.append(lemmatizer.lemmatize(word, tag))
             # "5/18/2011" in row["Created_at"] and
             concat = ' '.join(lemmatized_sentence)
-            if any(substring in concat for substring in symptom1):
-                prefix = "Symptom 1"
-            elif any(substring in concat for substring in symptom2):
-                prefix = "Symptom 2"
-            elif any(substring in concat for substring in other_symptoms):
-                prefix = "Other"
-            else:
+            if any(substring in concat for substring in blacklist):
                 prefix = "None"
+            else:    
+                if any(substring in concat for substring in symptom1):
+                    prefix = "Symptom 1"
+                elif any(substring in concat for substring in symptom2):
+                    prefix = "Symptom 2"
+                elif any(substring in concat for substring in other_symptoms):
+                    prefix = "Other"
+                else:
+                    prefix = "None"
             #if sum == 0:
             messages[time].append(row["text"])
             #total += 1
-            text = prefix + separator + row["Created_at"] + separator + row["Location"] + separator + row["text"]
+            text = prefix + separator + row["Created_at"] + separator + row["Location"] + separator + row["text"] + separator + str(row["ID"])
             lines.append(text)
     except ValueError as e:
         text = row["text"]
@@ -131,7 +140,7 @@ for index, row in reader.iterrows():
 sorted_times = sorted(times)
 
 
-with open("filtered_first_case.txt", "w") as file:
+with open("filtered_first_case.txt", "w", encoding="utf-8") as file:
     for line in lines:
         file.write(f"{line}\n")
 

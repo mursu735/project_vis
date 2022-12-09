@@ -287,8 +287,9 @@ fig.update_layout(
     width=width * scale_factor,
     height=height * scale_factor,
     margin={"l": 0, "r": 0, "t": 0, "b": 0},
+    title="Sickness-related messages"
 )
 
 fig.show()
 
-fig.write_html("server/map_plot.html", auto_play=False, include_plotlyjs="cdn")
+#fig.write_html("server/map_plot.html", auto_play=False, include_plotlyjs="cdn")

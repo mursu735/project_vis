@@ -29,13 +29,19 @@ def get_word_list():
     #return ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomit", "diarrhea"]
     # return ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
     # return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breath", "diarrhea", "insomnia", "unwell", "vomit"]
-    return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breathe", "diarrhea", "insomnia", "unwell", "vomit", "sick", "ache"]
+    return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn",
+            "nausea", "cramps", "cold", "cough", "aching", "breathe", "diarrhea", "insomnia", "unwell",
+            "vomit", "sick", "ache", "bomb", "explosion", "threat", "spill"]
 
 def get_disease_1_symptoms():
     return ["flu", "sweats", "chills", "pneumonia", "fatigue", "headache", "cold", "fever"]
 
 def get_disease_2_symptoms():
-    return ["diarrhea", "nausea", "heartburn", "cramps"]
+    #return ["diarrhea", "nausea", "heartburn", "cramps"]
+    return ["diarrhea", "nausea", "heartburn", "cramps", "aching", "ache", "breath", "sick", "vomit", "insomnia", "unwell", "cough"]
+
+def get_blacklist():
+    return ["fried", "oil"]
 
 def get_width():
     return 5216

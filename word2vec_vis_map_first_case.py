@@ -50,7 +50,8 @@ with open("filtered_first_case.txt") as file:
         time_precise = datetime.strptime(splitted[1], '%m/%d/%Y %H:%M')
         time = time_precise.replace(minute=0)
         coord = splitted[2]
-        text = coord + " / " + splitted[3]
+        id = splitted[4]
+        text = "ID: " + id + ";" + coord + " / " + splitted[3]
 
         x_interpolate, y_interpolate = word2vec_helpers.get_coords_in_pixels(coord)
         if time not in coords_map:

@@ -20,6 +20,11 @@ print(model_name)
 
 new_model = gensim.models.Word2Vec.load(model_name)
 wv = new_model.wv
+word = "bomb"
+
+words = wv.most_similar(positive=[f"{word}"], topn=100)
+
+print(words)
 
 #wv = api.load('glove-twitter-100')
 
@@ -41,7 +46,7 @@ print("corpora :", lemmatizer.lemmatize("corpora"))
 # a denotes adjective in "pos"
 print("better :", lemmatizer.lemmatize("better", pos ="a"))
 '''
-
+'''
 vocab = wv.index_to_key
 count = 0
 total = len(vocab)
@@ -63,7 +68,7 @@ with open("similar_words/similar_words.txt", "w") as file:
         print(f"{count}/{total}", end='\r')
         file.write(f"{k}: {v}\n")
         count += 1
-
+'''
 #wv.evaluate_word_pairs('MC_1_Materials_3-30-2011/Microblogs.csv')
 '''
 words = wv.most_similar(positive=[f"{word}"], topn=100)
