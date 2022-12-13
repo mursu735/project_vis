@@ -54,8 +54,8 @@ im = Image.open(edited_image_filename) # Can be many different formats.
 pix = im.load()
 sizex, sizey = im.size
 
-symptom1 = word2vec_helpers.get_disease_1_symptoms()
-symptom2 = word2vec_helpers.get_disease_2_symptoms()
+symptom1 = set(word2vec_helpers.get_disease_1_symptoms())
+symptom2 = set(word2vec_helpers.get_disease_2_symptoms())
 blacklist = word2vec_helpers.get_blacklist()
 other_symptoms = []
 tmp = word2vec_helpers.get_word_list()
@@ -65,6 +65,7 @@ for element in tmp:
         other_symptoms.append(element)
 
 print(other_symptoms)
+other_symptoms = set(other_symptoms)
 total = 0
 
 times = []
@@ -114,15 +115,15 @@ for index, row in reader.iterrows():
                     #else use the tag to lemmatize the token
                     lemmatized_sentence.append(lemmatizer.lemmatize(word, tag))
             # "5/18/2011" in row["Created_at"] and
-            concat = ' '.join(lemmatized_sentence)
-            if any(substring in concat for substring in blacklist):
+            concat = set(lemmatized_sentence)
+            if concat.intersection(blacklist):
                 prefix = "None"
             else:    
-                if any(substring in concat for substring in symptom1):
+                if concat.intersection(symptom1):
                     prefix = "Symptom 1"
-                elif any(substring in concat for substring in symptom2):
+                elif concat.intersection(symptom2):
                     prefix = "Symptom 2"
-                elif any(substring in concat for substring in other_symptoms):
+                elif concat.intersection(other_symptoms):
                     prefix = "Other"
                 else:
                     prefix = "None"

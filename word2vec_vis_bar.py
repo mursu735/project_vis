@@ -1,7 +1,7 @@
 import numpy as np
 import plotly.graph_objects as go
 import math
-from datetime import datetime
+from datetime import datetime, timedelta
 from PIL import Image
 import word2vec_helpers
 
@@ -96,15 +96,34 @@ start_time = datetime(2011, 5, 16, 0, 0)
 unique_times_sorted = unique_times_sorted[unique_times_sorted.index(start_time):]
 
 final_map = {}
+keys = []
+
+time_window = 3
 
 # Normalize by total number of messages during the hour
-for time in unique_times_sorted:
-    final_map[time] = {
-        "Symptom 1": coords_map[time]["Symptom 1"] / counts_by_time[time],
-        "Symptom 2": coords_map[time]["Symptom 2"] / counts_by_time[time],
-        "Other symptoms": coords_map[time]["Other symptoms"] / counts_by_time[time]
+for time in range(0, len(unique_times_sorted), time_window):
+    start_time = unique_times_sorted[time]
+    s1_sum = 0
+    s2_sum = 0
+    other_sum = 0
+    total = 0
+    for i in range(time, min(len(unique_times_sorted), time + time_window)):
+        cur = unique_times_sorted[i]
+        s1_sum += coords_map[cur]["Symptom 1"]
+        s2_sum += coords_map[cur]["Symptom 2"]
+        other_sum += coords_map[cur]["Other symptoms"]
+        total += counts_by_time[cur]
+    # This addition has no other use other than emphasizing that
+    end_time = cur + timedelta(minutes=59)
+    key = f"{start_time}-{end_time}"
+    keys.append(key)
+    final_map[key] = {
+        "Symptom 1": s1_sum / total,
+        "Symptom 2": s2_sum / total,
+        "Other symptoms": other_sum / total
     }
 
+'''
 with open("dscad.txt", "w") as file:
     for time in unique_times_sorted:
         s1 = coords_map[time]["Symptom 1"][9]
@@ -118,7 +137,7 @@ with open("dscad_total.txt", "w") as file:
         s2 = final_map[time]["Symptom 2"][9]
         os = final_map[time]["Other symptoms"][9]
         file.write(f"Time: {time}, {s1}, {s2}, {os} \n")
-
+'''
 
 frames=[
     go.Frame(
@@ -139,15 +158,15 @@ frames=[
             name=f"Other symptoms: {other_symptoms}"
         )
         ],
-        name=time.strftime('%m/%d/%Y %H:%M')
+        name=time#.strftime('%m/%d/%Y %H:%M')
     )
-    for time in unique_times_sorted]
+    for time in keys]
 
 
 steps = []
-for i in range(len(unique_times_sorted)):
-    time = unique_times_sorted[i]
-    name = time.strftime('%m/%d/%Y %H:%M')
+for i in range(len(keys)):
+    name = keys[i]
+    #name = time.strftime('%m/%d/%Y %H:%M')
     step = dict(
         method="animate",
         args=[
@@ -170,17 +189,17 @@ fig = go.Figure(
     data=[
         go.Bar(
             x=districts,
-            y=final_map[unique_times_sorted[0]]["Symptom 1"],
+            y=final_map[keys[0]]["Symptom 1"],
             name=f"Symptom group 1: {symptom1}"
         ),
         go.Bar(
             x=districts,
-            y=final_map[unique_times_sorted[0]]["Symptom 2"],
+            y=final_map[keys[0]]["Symptom 2"],
             name=f"Symptom group 2: {symptom2}"
         ),
         go.Bar(
             x=districts,
-            y=final_map[unique_times_sorted[0]]["Other symptoms"],
+            y=final_map[keys[0]]["Other symptoms"],
             name=f"Other symptoms: {other_symptoms}"
         )
     ],
@@ -218,8 +237,9 @@ fig.update_layout(
     xaxis_tickangle=-45,
     sliders=sliders,
     yaxis_range=[0.0, 1.0],
-    title="Percentage of relevant messages by area",
-    yaxis_title="Percentage of sickness-related messages")
+    title=f"Percentage of relevant messages by area as an average over {time_window} hours",
+    yaxis_title="Percentage of sickness-related messages"
+)
 
 
 '''yranges = {}

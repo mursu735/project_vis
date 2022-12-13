@@ -111,7 +111,7 @@ smogtown = reader[reader['target_area']]
 ids = smogtown["ID"].unique()
 print(ids)
 
-# Get messages only from those IDs
+# Get messages only from those IDs and do the grouping as usual
 
 reader = reader[reader["ID"].isin(ids)]
 
@@ -177,11 +177,6 @@ for index, row in reader.iterrows():
         text = row["text"]
         print(f"{e}, message: {text}")
 '''
-# Get messages only from those IDs
-
-#df = reader[reader["ID"].isin(ids)]
-
-#print(df)
 
 
 with open("filtered_smogtown_users.txt", "w", encoding="utf-8") as file:

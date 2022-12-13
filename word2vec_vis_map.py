@@ -83,20 +83,23 @@ sorted_counts = sorted(counts.items())
 # print(sorted)
 unique_times_sorted = sorted(unique_times)
 
-if len(coords_map[unique_times_sorted[0]]["Symptom1"]["x"]) == 0:
-    coords_map[unique_times_sorted[0]]["Symptom1"]["x"].append(width + 20)
-    coords_map[unique_times_sorted[0]]["Symptom1"]["y"].append(height + 20)
-    coords_map[unique_times_sorted[0]]["Symptom1"]["text"].append("padding")
 
-if len(coords_map[unique_times_sorted[0]]["Symptom2"]["x"]) == 0:
-    coords_map[unique_times_sorted[0]]["Symptom2"]["x"].append(width + 20)
-    coords_map[unique_times_sorted[0]]["Symptom2"]["y"].append(height + 20)
-    coords_map[unique_times_sorted[0]]["Symptom2"]["text"].append("padding")
 
-if len(coords_map[unique_times_sorted[0]]["Other"]["x"]) == 0:
-    coords_map[unique_times_sorted[0]]["Other"]["x"].append(width + 20)
-    coords_map[unique_times_sorted[0]]["Other"]["y"].append(height + 20)
-    coords_map[unique_times_sorted[0]]["Other"]["text"].append("padding")
+for time in unique_times_sorted:
+    if len(coords_map[time]["Symptom1"]["x"]) == 0:
+        coords_map[time]["Symptom1"]["x"].append(width + 20)
+        coords_map[time]["Symptom1"]["y"].append(height + 20)
+        coords_map[time]["Symptom1"]["text"].append("padding")
+
+    if len(coords_map[time]["Symptom2"]["x"]) == 0:
+        coords_map[time]["Symptom2"]["x"].append(width + 20)
+        coords_map[time]["Symptom2"]["y"].append(height + 20)
+        coords_map[time]["Symptom2"]["text"].append("padding")
+
+    if len(coords_map[time]["Other"]["x"]) == 0:
+        coords_map[time]["Other"]["x"].append(width + 20)
+        coords_map[time]["Other"]["y"].append(height + 20)
+        coords_map[time]["Other"]["text"].append("padding")
 
 frames=[
     go.Frame(
