@@ -47,7 +47,7 @@ tfidf_df = tfidf_df.rename(columns={0:'tfidf', 'level_0': 'document','level_1': 
 
 tfidf_df = tfidf_df.sort_values(by=['document','tfidf'], ascending=[True,False]).groupby(['document']).head(100)
 
-dates = ['5-16-2011', '5-17-2011', '5-18-2011']
+dates = ['5-16-2011', '5-17-2011', '5-18-2011', '5-19-2011']
 print("Writing files")
 for date in dates:
     terms = tfidf_df[tfidf_df['document'].str.contains(date)]

@@ -46,7 +46,7 @@ def nltk_tag_to_wordnet_tag(nltk_tag):
 # If the position and date is in the area of interest, save it, otherwise skip it
 target_area = np.array([63, 72, 204])
 start_time = datetime(2011, 5, 16, 0, 0)
-end_time = datetime(2011, 5, 19, 0, 0)
+end_time = datetime(2011, 5, 20, 0, 0)
 
 separator = ':^:'
 edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited_first_case_mod.png"

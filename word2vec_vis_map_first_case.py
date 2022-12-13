@@ -41,7 +41,10 @@ unique_times = []
 unique_times_precise = []
 interesting_messages = {}
 
-with open("filtered_first_case.txt") as file:
+text_file = "filtered_smogtown_users.txt"
+#text_file = "filtered_first_case.txt"
+
+with open(text_file) as file:
     for line in file.readlines():
         line = line.replace("\n", "")
         # Match coordinate and time, use the previously read times as guidance

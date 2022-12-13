@@ -68,10 +68,14 @@ def select_rows(row, pix, sizex, sizey):
 
 # If the position and date is in the area of interest, save it, otherwise skip it
 target_area = np.array([63, 72, 204])
-target_time = datetime(2011, 5, 17, 9, 0)
+# Explosion in Smogtown
+#target_time = datetime(2011, 5, 17, 9, 0)
+#edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_smogtown.png"
+# Traffic accident near Interstate 610
+target_time = datetime(2011, 5, 17, 11, 0)
+edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_bridge.png"
 
 separator = ':^:'
-edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_smogtown.png"
 im = Image.open(edited_image_filename) # Can be many different formats.
 pix = im.load()
 sizex, sizey = im.size
@@ -97,13 +101,13 @@ lines = []
 ids = []
 
 
-# Get IDs that were in Smogtown when the explosion happened
+# Get IDs that were in the target area when the explosion happened
 reader = pd.read_csv('MC_1_Materials_3-30-2011/Microblogs.csv', sep=",", header=0, usecols=["ID", "Created_at", "text", "Location"])
 print(reader)
 total = len(reader.index)
 count = 0
-reader['smogtown'] = reader.apply(select_rows, args=(pix, sizex, sizey), axis=1)
-smogtown = reader[reader['smogtown']]
+reader['target_area'] = reader.apply(select_rows, args=(pix, sizex, sizey), axis=1)
+smogtown = reader[reader['target_area']]
 ids = smogtown["ID"].unique()
 print(ids)
 

@@ -37,8 +37,8 @@ def get_disease_1_symptoms():
     return ["flu", "sweats", "chills", "pneumonia", "fatigue", "headache", "cold", "fever"]
 
 def get_disease_2_symptoms():
-    #return ["diarrhea", "nausea", "heartburn", "cramps"]
-    return ["diarrhea", "nausea", "heartburn", "cramps", "aching", "ache", "breath", "sick", "vomit", "insomnia", "unwell", "cough"]
+    return ["diarrhea", "nausea", "heartburn", "cramps"]
+    #return ["diarrhea", "nausea", "heartburn", "cramps", "aching", "ache", "breath", "sick", "vomit", "insomnia", "unwell", "cough"]
 
 def get_blacklist():
     return ["fried", "oil"]
