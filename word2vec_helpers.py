@@ -31,7 +31,7 @@ def get_word_list():
     # return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breath", "diarrhea", "insomnia", "unwell", "vomit"]
     return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chill", "heartburn",
             "nausea", "cramps", "cold", "cough", "aching", "breathe", "diarrhea", "insomnia", "unwell",
-            "vomit", "sick", "ache", "bomb", "explosion", "threat", "spill"]
+            "vomit", "sick", "ache"]
 
 def get_disease_1_symptoms():
     return ["flu", "sweats", "chill", "pneumonia", "fatigue", "headache", "cold", "fever"]
@@ -39,6 +39,9 @@ def get_disease_1_symptoms():
 def get_disease_2_symptoms():
     return ["diarrhea", "nausea", "heartburn", "cramps"]
     #return ["diarrhea", "nausea", "heartburn", "cramps", "aching", "ache", "breath", "sick", "vomit", "insomnia", "unwell", "cough"]
+
+def get_causes():
+    return ["bomb", "explosion", "threat", "spill", "fire"]
 
 def get_blacklist():
     return ["fried", "oil"]

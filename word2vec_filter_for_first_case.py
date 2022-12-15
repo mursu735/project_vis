@@ -56,12 +56,13 @@ sizex, sizey = im.size
 
 symptom1 = set(word2vec_helpers.get_disease_1_symptoms())
 symptom2 = set(word2vec_helpers.get_disease_2_symptoms())
+causes = set(word2vec_helpers.get_causes())
 blacklist = word2vec_helpers.get_blacklist()
 other_symptoms = []
 tmp = word2vec_helpers.get_word_list()
 
 for element in tmp:
-    if element not in symptom1 and element not in symptom2:
+    if element not in symptom1 and element not in symptom2 and element not in causes:
         other_symptoms.append(element)
 
 print(other_symptoms)
@@ -123,6 +124,8 @@ for index, row in reader.iterrows():
                     prefix = "Symptom 1"
                 elif concat.intersection(symptom2):
                     prefix = "Symptom 2"
+                elif concat.intersection(causes):
+                    prefix = "Causes"
                 elif concat.intersection(other_symptoms):
                     prefix = "Other"
                 else:
