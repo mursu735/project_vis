@@ -17,12 +17,14 @@ class MyCorpus:
 
     def __iter__(self):
         #corpus_path = datapath('lee_background.cor')
-        with open('Heart_Of_Darkness.txt') as file:
-            yield utils.simple_preprocess(file)
+        with open('Moby_Dick.txt') as file:
+            for line in file:
+                yield(simple_preprocess(line))
 
 sentences = MyCorpus()
 #sentences.dropna(inplace=True)
 model = gensim.models.Word2Vec(sentences=sentences)
+
 
 wv = model.wv
 
@@ -30,7 +32,7 @@ with open("words.txt", "w") as file:
     for index, word in enumerate(wv.index_to_key):
         #if index == 10:
         #    break
-        print(f"word #{index}/{len(wv.index_to_key)} is {word}")
+        #print(f"word #{index}/{len(wv.index_to_key)} is {word}")
         file.write(f"word #{index}/{len(wv.index_to_key)} is {word}\n")
 
 with tempfile.NamedTemporaryFile(prefix='gensim-model-', delete=False) as tmp:
