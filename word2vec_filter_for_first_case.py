@@ -173,6 +173,8 @@ def do_stuff():
                     prefix = "Symptom 1"
                 elif concat.intersection(symptom2):
                     prefix = "Symptom 2"
+                elif concat.intersection(causes):
+                    prefix = "Causes"
                 elif concat.intersection(other_symptoms):
                     prefix = "Other"
                 else:

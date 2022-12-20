@@ -26,11 +26,12 @@ edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_edited.png"
 separator = ":^:"
 symptom1 = word2vec_helpers.get_disease_1_symptoms()
 symptom2 = word2vec_helpers.get_disease_2_symptoms()
+causes = word2vec_helpers.get_causes()
 other_symptoms = []
 tmp = word2vec_helpers.get_word_list()
 
 for element in tmp:
-    if element not in symptom1 and element not in symptom2:
+    if element not in symptom1 and element not in symptom2 and element not in causes:
         other_symptoms.append(element)
 
 fig = go.Figure()
@@ -61,6 +62,7 @@ with open(text_file) as file:
             coords_map[time] = {"Symptom1": {"x": [], "y": [], "text": []},
                                 "Symptom2": {"x": [], "y": [], "text": []},
                                 "Other": {"x": [], "y": [], "text": []},
+                                "Causes": {"x": [], "y": [], "text": []},
                                 "Filling": {"x": [], "y": [], "text": []}}
             unique_times.append(time)
 
@@ -94,6 +96,15 @@ with open(text_file) as file:
             asd = "Other: " + text
             interesting_messages[time_precise].append(asd)
             #coords_map[time]["label"].append("black")
+        elif group == "Causes":
+            coords_map[time]["Causes"]["x"].append(x_interpolate * scale_factor)
+            coords_map[time]["Causes"]["y"].append(y_interpolate * scale_factor)
+            coords_map[time]["Causes"]["text"].append(text)
+            if time_precise not in interesting_messages:
+                unique_times_precise.append(time_precise)
+                interesting_messages[time_precise] = []
+            asd = "Causes: " + text
+            interesting_messages[time_precise].append(asd)
         else:
             coords_map[time]["Filling"]["x"].append(x_interpolate * scale_factor)
             coords_map[time]["Filling"]["y"].append(y_interpolate * scale_factor)
@@ -131,6 +142,11 @@ for time in unique_times_sorted:
         coords_map[time]["Filling"]["y"].append(height + 20)
         coords_map[time]["Filling"]["text"].append("padding")
 
+    if len(coords_map[time]["Causes"]["x"]) == 0:
+        coords_map[time]["Causes"]["x"].append(width + 20)
+        coords_map[time]["Causes"]["y"].append(height + 20)
+        coords_map[time]["Causes"]["text"].append("padding")
+
 frames=[
     go.Frame(
         data=[
@@ -144,6 +160,18 @@ frames=[
                     size=marker_size,
                     color="black",
                     opacity=0.5
+                )
+            ),
+            go.Scatter(
+            x=coords_map[time]["Other"]["x"],
+            y=coords_map[time]["Other"]["y"],
+            text=coords_map[time]["Other"]["text"],
+            name=f"Other symptoms: {other_symptoms}",
+            mode="markers",
+            marker=dict(
+                    size=marker_size,
+                    color="yellow",
+                    opacity=1
                 )
             ),
             go.Scatter(
@@ -171,14 +199,14 @@ frames=[
                 )
             ),
             go.Scatter(
-            x=coords_map[time]["Other"]["x"],
-            y=coords_map[time]["Other"]["y"],
-            text=coords_map[time]["Other"]["text"],
-            name=f"Other symptoms: {other_symptoms}",
-            mode="markers",
-            marker=dict(
+                x=coords_map[time]["Causes"]["x"],
+                y=coords_map[time]["Causes"]["y"],
+                text=coords_map[time]["Causes"]["text"],
+                name=f"Causes: {causes}",
+                mode="markers",
+                marker=dict(
                     size=marker_size,
-                    color="yellow",
+                    color="LightSkyBlue",
                     opacity=1
                 )
             ),
@@ -227,49 +255,61 @@ fig = go.Figure(
                     color="black",
                     opacity=0.5
                 )
-            ),
+        ),
         go.Scatter(
-                x=coords_map[unique_times_sorted[0]]["Symptom1"]["x"],
-                y=coords_map[unique_times_sorted[0]]["Symptom1"]["y"],
-                text=coords_map[unique_times_sorted[0]]["Symptom1"]["text"],
-                name=f"Symptom group 1: {symptom1}",
-                mode="markers",
-                marker=dict(
-                    size=marker_size,
-                    color="red",
-                    opacity=1
-                )
-            ),
-            go.Scatter(
-                x=coords_map[unique_times_sorted[0]]["Symptom2"]["x"],
-                y=coords_map[unique_times_sorted[0]]["Symptom2"]["y"],
-                text=coords_map[unique_times_sorted[0]]["Symptom2"]["text"],
-                name=f"Symptom group 2: {symptom2}",
-                mode="markers",
-                marker=dict(
-                    size=marker_size,
-                    color="blue",
-                    opacity=1
-                )
-            ),
-            go.Scatter(
-                x=coords_map[unique_times_sorted[0]]["Other"]["x"],
-                y=coords_map[unique_times_sorted[0]]["Other"]["y"],
-                text=coords_map[unique_times_sorted[0]]["Other"]["text"],
-                name=f"Other symptoms: {other_symptoms}",
-                mode="markers",
-                marker=dict(
-                    size=marker_size,
-                    color="yellow",
-                    opacity=1
-                )
-            ),
-            go.Scatter(
-                x=[0, width * scale_factor],
-                y=[0, height * scale_factor],
-                mode="markers",
-                marker_opacity=0
+            x=coords_map[unique_times_sorted[0]]["Other"]["x"],
+            y=coords_map[unique_times_sorted[0]]["Other"]["y"],
+            text=coords_map[unique_times_sorted[0]]["Other"]["text"],
+            name=f"Other symptoms: {other_symptoms}",
+            mode="markers",
+            marker=dict(
+                size=marker_size,
+                color="yellow",
+                opacity=1
             )
+        ),
+        go.Scatter(
+            x=coords_map[unique_times_sorted[0]]["Symptom1"]["x"],
+            y=coords_map[unique_times_sorted[0]]["Symptom1"]["y"],
+            text=coords_map[unique_times_sorted[0]]["Symptom1"]["text"],
+            name=f"Symptom group 1: {symptom1}",
+            mode="markers",
+            marker=dict(
+                size=marker_size,
+                color="red",
+                opacity=1
+            )
+        ),
+        go.Scatter(
+            x=coords_map[unique_times_sorted[0]]["Symptom2"]["x"],
+            y=coords_map[unique_times_sorted[0]]["Symptom2"]["y"],
+            text=coords_map[unique_times_sorted[0]]["Symptom2"]["text"],
+            name=f"Symptom group 2: {symptom2}",
+            mode="markers",
+            marker=dict(
+                size=marker_size,
+                color="blue",
+                opacity=1
+            )
+        ),
+        go.Scatter(
+            x=coords_map[unique_times_sorted[0]]["Causes"]["x"],
+            y=coords_map[unique_times_sorted[0]]["Causes"]["y"],
+            text=coords_map[unique_times_sorted[0]]["Causes"]["text"],
+            name=f"Causes: {causes}",
+            mode="markers",
+            marker=dict(
+                size=marker_size,
+                color="LightSkyBlue",
+                opacity=1
+            )
+        ),
+        go.Scatter(
+            x=[0, width * scale_factor],
+            y=[0, height * scale_factor],
+            mode="markers",
+            marker_opacity=0
+        )
     ],
     layout=go.Layout( # Styling
         scene=dict(

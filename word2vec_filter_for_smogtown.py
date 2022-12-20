@@ -71,9 +71,14 @@ target_area = np.array([63, 72, 204])
 # Explosion in Smogtown
 #target_time = datetime(2011, 5, 17, 9, 0)
 #edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_smogtown.png"
+
 # Traffic accident near Interstate 610
-target_time = datetime(2011, 5, 17, 11, 0)
-edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_bridge.png"
+#target_time = datetime(2011, 5, 17, 11, 0)
+#edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_bridge.png"
+
+# Traffic accident near Smogtown hospital
+target_time = datetime(2011, 5, 17, 9, 0)
+edited_image_filename = "MC_1_Materials_3-30-2011/Vastopolis_Map_bridge_other.png"
 
 separator = ':^:'
 im = Image.open(edited_image_filename) # Can be many different formats.
@@ -82,12 +87,13 @@ sizex, sizey = im.size
 
 symptom1 = word2vec_helpers.get_disease_1_symptoms()
 symptom2 = word2vec_helpers.get_disease_2_symptoms()
+causes = word2vec_helpers.get_causes()
 blacklist = word2vec_helpers.get_blacklist()
 other_symptoms = []
 tmp = word2vec_helpers.get_word_list()
 
 for element in tmp:
-    if element not in symptom1 and element not in symptom2:
+    if element not in symptom1 and element not in symptom2 and element not in causes:
         other_symptoms.append(element)
 
 print(other_symptoms)
@@ -149,6 +155,8 @@ for index, row in reader.iterrows():
             prefix = "Symptom 1"
         elif any(substring in concat for substring in symptom2):
             prefix = "Symptom 2"
+        elif any(substring in concat for substring in causes):
+            prefix = "Causes"
         elif any(substring in concat for substring in other_symptoms):
             prefix = "Other"
         else:

@@ -42,6 +42,9 @@ def get_disease_2_symptoms():
     return ["diarrhea", "nausea", "heartburn", "cramps"]
     #return ["diarrhea", "nausea", "heartburn", "cramps", "aching", "ache", "breath", "sick", "vomit", "insomnia", "unwell", "cough"]
 
+def get_causes():
+    return ["bomb", "explosion", "threat", "spill", "fire"]
+
 def get_blacklist():
     return ["fried", "oil"]
 
