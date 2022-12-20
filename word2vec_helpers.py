@@ -1,6 +1,8 @@
 import os
 import re
 import numpy as np
+from nltk.corpus import wordnet
+
 
 north_end = 42.3017
 west_start = 93.5673
@@ -29,9 +31,9 @@ def get_word_list():
     #return ["fever", "chills", "sweats", "aches", "pains", "fatigue", "coughing", "breathing", "nausea", "vomit", "diarrhea"]
     # return ["sick", "sleepy", "uncomfortable", "dizzy", "nauseous", "unwell", "bedridden", "coughing", "fever", "hospitalized", "headache", "rashes"]
     # return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn", "nausea", "cramps", "cold", "cough", "aching", "breath", "diarrhea", "insomnia", "unwell", "vomit"]
-    return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chill", "heartburn",
+    return ["fever", "headache", "pneumonia", "sweats", "fatigue", "flu", "chills", "heartburn",
             "nausea", "cramps", "cold", "cough", "aching", "breathe", "diarrhea", "insomnia", "unwell",
-            "vomit", "sick", "ache", "bomb", "explosion", "threat", "spill"]
+            "vomit", "sick", "ache", "bomb", "explosion", "threat", "spill", "fire"]
 
 def get_disease_1_symptoms():
     return ["flu", "sweats", "chill", "pneumonia", "fatigue", "headache", "cold", "fever"]
@@ -42,6 +44,9 @@ def get_disease_2_symptoms():
 
 def get_blacklist():
     return ["fried", "oil"]
+
+def get_ambiguous_words():
+    return ["sick", "chills", "cold"]
 
 def get_width():
     return 5216
@@ -64,6 +69,18 @@ def get_coords_in_pixels(coord):
     y_interpolate = (((n - north_start) / (north_end - north_start))) * height
     x_interpolate = (((w - west_start) / (west_end - west_start))) * width
     return x_interpolate, y_interpolate
+
+def nltk_tag_to_wordnet_tag(nltk_tag):
+    if nltk_tag.startswith('J'):
+        return wordnet.ADJ
+    elif nltk_tag.startswith('V'):
+        return wordnet.VERB
+    elif nltk_tag.startswith('N'):
+        return wordnet.NOUN
+    elif nltk_tag.startswith('R'):
+        return wordnet.ADV
+    else:
+        return None
 
 def determine_message_location(image, message):
     # Each row correponds to RGB color on edited map, used to group the symptoms
