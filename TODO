@@ -32,3 +32,8 @@ Check coordinate 42.20621 93.3021
 22953,5/18/2011 5:35,42.20621 93.3021,fuel spill - haz mat - Dept of Interior - 1800 blk C St NW - trk fuel tank ruptured
 
 Check messages 5/17 afternoon near 610, might be spillage
+
+
+
+Take a long text, vectorize it, visualize the embeddings, apply umap and PCA, visualize side by side, select word from list, highlight word and show it in both umap and PCA
+Apply NLP techniques like nre to extract important events at a glance
