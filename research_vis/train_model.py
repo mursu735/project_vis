@@ -17,7 +17,7 @@ class MyCorpus:
 
     def __iter__(self):
         #corpus_path = datapath('lee_background.cor')
-        with open('Moby_Dick.txt') as file:
+        with open('Moby_Dick.txt', encoding="utf-8") as file:
             for line in file:
                 yield(simple_preprocess(line))
 
@@ -38,6 +38,9 @@ with open("words.txt", "w") as file:
 with tempfile.NamedTemporaryFile(prefix='gensim-model-', delete=False) as tmp:
     temporary_filepath = tmp.name
     split = temporary_filepath.split('/')
+    # Save in local directory for Windows
+    if len(split) == 1:
+        split = temporary_filepath.split('\\')
     temporary_filepath = split[-1]
     model.save(temporary_filepath)
     with open("model_name.txt", "w") as file:

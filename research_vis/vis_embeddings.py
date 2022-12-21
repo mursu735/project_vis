@@ -55,10 +55,17 @@ for i in range(0, len(labels)):
 
 node_x = []
 node_y = []
+circles = {}
 for node in G.nodes():
     x, y = G.nodes[node]['pos']
     node_x.append(x)
     node_y.append(y)
+    circles[node] = [dict(
+        type="circle",
+        xref="x", yref="y",
+        x0=x - 5, y0=y - 5,
+        x1=x + 5, y1=y + 5,
+        line=dict(color="DarkOrange"))]
 
 #trace = go.Scatter(x=x_vals, y=y_vals, mode='text', text=labels)
 fig.add_trace(
@@ -79,7 +86,7 @@ def highlight_circle(group):
 
     for tracer_ix, tracer in enumerate(fig["data"]):
         print(fig["data"][tracer_ix]["text"])
-        print(group)
+        #print(group)
         colors = ["red" if datapoint_group == group else "black" for datapoint_group in fig["data"][tracer_ix]["text"]]
         result.append(colors)
 
@@ -94,8 +101,9 @@ fig.update_layout(
                     "label": group,
                     "method": "update",
                     "args": [
-                        {"marker.color": highlight_group(group),
-                        "shape": highlight_circle(group)}
+                        {"marker.color": highlight_group(group)},
+                        {"shapes": circles[group] }
+                        
                     ],
                 }
                 for group in labels
