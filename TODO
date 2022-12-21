@@ -35,5 +35,6 @@ Check messages 5/17 afternoon near 610, might be spillage
 
 
 
-Take a long text, vectorize it, visualize the embeddings, apply umap and PCA, visualize side by side, select word from list, highlight word and show it in both umap and PCA
+Take a long text, vectorize it, visualize the embeddings, apply umap and PCA, visualize side by side, select word from list, highlight word and show it in both umap and PCA (DONE! (mainly))
+Change t-SNE to umap, change dataset from own model to pretrained google 300 vector dataset, but use labels from the trained data
 Apply NLP techniques like nre to extract important events at a glance

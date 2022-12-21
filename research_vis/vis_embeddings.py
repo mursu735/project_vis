@@ -3,9 +3,11 @@ import random
 import gensim.models
 import gensim.downloader as api
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import networkx as nx
 from sklearn.decomposition import IncrementalPCA    # inital reduction
 from sklearn.manifold import TSNE                   # final reduction
+from sklearn.decomposition import PCA
 import umap
 import numpy as np
 
@@ -27,6 +29,22 @@ def reduce_dimensions(wv):
     y_vals = [v[1] for v in vectors]
     return x_vals, y_vals, labels
 
+def reduce_pca(wv):
+    num_dimensions = 2  # final num dimensions (2D, 3D, etc)
+
+    # extract the words & their vectors, as numpy arrays
+    vectors = np.asarray(wv.vectors)
+    labels = np.asarray(wv.index_to_key)  # fixed-width numpy strings
+
+    print(vectors)
+    print(labels)
+    # reduce using t-SNE
+    pca = PCA(n_components=num_dimensions)
+    vectors = pca.fit_transform(vectors)
+    print(vectors)
+    x_vals = [v[0] for v in vectors]
+    y_vals = [v[1] for v in vectors]
+    return x_vals, y_vals, labels
 
 
 model_name = helpers.fetch_model_name()
@@ -46,8 +64,14 @@ wv = new_model.wv
 
 x_vals, y_vals, labels = reduce_dimensions(wv)
 
-fig = go.Figure()
+x_vals_pca, y_vals_pca, labels_pca = reduce_pca(wv)
 
+
+
+fig = make_subplots(rows=1, cols=2,
+                    vertical_spacing=0.02,
+                    subplot_titles=("Embeddings reduced with tSNE", "Embeddings reduced with PCA"))
+'''
 G = nx.Graph()
 
 for i in range(0, len(labels)):
@@ -66,11 +90,39 @@ for node in G.nodes():
         x0=x - 5, y0=y - 5,
         x1=x + 5, y1=y + 5,
         line=dict(color="DarkOrange"))]
+'''
+circles_pca = {}
+circles = {}
+
+for i in range(0, len(labels)):
+    x_pca = x_vals_pca[i]
+    y_pca = y_vals_pca[i]
+    x = x_vals[i]
+    y = y_vals[i]
+    if labels[i] not in circles:
+        circles[labels[i]] = []
+    if labels_pca[i] not in circles:
+        circles[labels_pca[i]] = []
+
+    circles[labels[i]].append(dict(
+        type="circle",
+        xref="x1", yref="y1",
+        x0=x - 5, y0=y - 5,
+        x1=x + 5, y1=y + 5,
+        line=dict(color="DarkOrange")))
+    circles[labels_pca[i]].append(dict(
+        type="circle",
+        xref="x2", yref="y2",
+        x0=x_pca - 0.15, y0=y_pca - 0.15,
+        x1=x_pca + 0.15, y1=y_pca + 0.15,
+        line=dict(color="DarkOrange")))
 
 #trace = go.Scatter(x=x_vals, y=y_vals, mode='text', text=labels)
-fig.add_trace(
-    go.Scatter(x=node_x, y=node_y, mode="markers", text=labels, name="words")
-)
+trace1 = go.Scatter(x=x_vals, y=y_vals, mode="markers", text=labels, name="words")
+trace2 = go.Scatter(x=x_vals_pca, y=y_vals_pca, mode="markers", text=labels_pca, name="words")
+
+fig.append_trace(trace1,1,1)
+fig.append_trace(trace2,1,2)
 
 def highlight_group(group):
     result = []
@@ -81,18 +133,6 @@ def highlight_group(group):
 
     return result
 
-def highlight_circle(group):
-    result = []
-
-    for tracer_ix, tracer in enumerate(fig["data"]):
-        print(fig["data"][tracer_ix]["text"])
-        #print(group)
-        colors = ["red" if datapoint_group == group else "black" for datapoint_group in fig["data"][tracer_ix]["text"]]
-        result.append(colors)
-
-    return result
-
-
 fig.update_layout(
     updatemenus=[
         {
@@ -102,7 +142,9 @@ fig.update_layout(
                     "method": "update",
                     "args": [
                         {"marker.color": highlight_group(group)},
-                        {"shapes": circles[group] }
+                        {
+                            "shapes": circles[group]
+                        }
                         
                     ],
                 }
