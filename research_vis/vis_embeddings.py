@@ -12,15 +12,20 @@ import umap
 import numpy as np
 
 
-def reduce_dimensions(wv):
+def reduce_dimensions(wv, word_list):
     num_dimensions = 2  # final num dimensions (2D, 3D, etc)
 
     # extract the words & their vectors, as numpy arrays
-    vectors = np.asarray(wv.vectors)
-    labels = np.asarray(wv.index_to_key)  # fixed-width numpy strings
+    vec = []
+    lab = []
+    for word in word_list:
+        asd = wv.get_vector(word)
+        vec.append(asd)
+        lab.append(word)
 
-    print(vectors)
-    print(labels)
+    vectors = np.asarray(vec)
+    labels = np.asarray(lab)  # fixed-width numpy strings
+
     # reduce using t-SNE
     tsne = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
     vectors = tsne.fit_transform(vectors)
@@ -29,16 +34,20 @@ def reduce_dimensions(wv):
     y_vals = [v[1] for v in vectors]
     return x_vals, y_vals, labels
 
-def reduce_pca(wv):
+def reduce_pca(wv, word_list):
     num_dimensions = 2  # final num dimensions (2D, 3D, etc)
 
     # extract the words & their vectors, as numpy arrays
-    vectors = np.asarray(wv.vectors)
-    labels = np.asarray(wv.index_to_key)  # fixed-width numpy strings
+    vec = []
+    lab = []
+    for word in word_list:
+        asd = wv.get_vector(word)
+        vec.append(asd)
+        lab.append(word)
 
-    print(vectors)
-    print(labels)
-    # reduce using t-SNE
+    vectors = np.asarray(vec)
+    labels = np.asarray(lab)  # fixed-width numpy strings
+    # reduce using PCA
     pca = PCA(n_components=num_dimensions)
     vectors = pca.fit_transform(vectors)
     print(vectors)
@@ -51,20 +60,17 @@ model_name = helpers.fetch_model_name()
 
 print(model_name)
 
-
-
-#wv = api.load('word2vec-google-news-300')
-
 new_model = gensim.models.Word2Vec.load(f"{model_name}")
-wv = new_model.wv
+own_wv = new_model.wv
+labels = np.asarray(own_wv.index_to_key)
 
-#wv = api.load("glove-twitter-300")  # load glove vectors
+wv = api.load("word2vec-google-news-300")  # load glove vectors
 
 #word_list_filled.append(similar_symptoms)
 
-x_vals, y_vals, labels = reduce_dimensions(wv)
+x_vals, y_vals, labels = reduce_dimensions(wv, labels)
 
-x_vals_pca, y_vals_pca, labels_pca = reduce_pca(wv)
+x_vals_pca, y_vals_pca, labels_pca = reduce_pca(wv, labels)
 
 
 

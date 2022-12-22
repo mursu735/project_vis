@@ -7,3 +7,4 @@ gensim-model*
 .DS_Store
 Binary_classification/*.csv
 Binary_classification/Training_data/*.csv
+tf_idf/

@@ -39,6 +39,6 @@ Take a long text, vectorize it, visualize the embeddings, apply umap and PCA, vi
 Select cluster of words, highlight them in PCA, dbscan over output
 Filter words, use tf-idf
 Use doc2vec with paragraphs 
-Color enconding, when words appear
+Color enconding, what chapter is the tf-idf the highest
 Change t-SNE to umap, change dataset from own model to pretrained google 300 vector dataset, but use labels from the trained data
 Apply NLP techniques like nre to extract important events at a glance
