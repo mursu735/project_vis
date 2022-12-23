@@ -1,8 +1,10 @@
 import helpers
 import random
+import glob
 import gensim.models
 import gensim.downloader as api
 import plotly.graph_objects as go
+from dash import Dash, html, dcc
 from plotly.subplots import make_subplots
 import networkx as nx
 from sklearn.decomposition import IncrementalPCA    # inital reduction
@@ -55,16 +57,18 @@ def reduce_pca(wv, word_list):
     y_vals = [v[1] for v in vectors]
     return x_vals, y_vals, labels
 
-
 model_name = helpers.fetch_model_name()
 
 print(model_name)
 
 new_model = gensim.models.Word2Vec.load(f"{model_name}")
-own_wv = new_model.wv
-labels = np.asarray(own_wv.index_to_key)
+wv = new_model.wv
+labels = np.asarray(wv.index_to_key)
 
-wv = api.load("word2vec-google-news-300")  # load glove vectors
+text_files = glob.glob("./tf_idf/*.csv")
+# Go through all of the words of tf-idf and get the highest value, map it to the chapter where it is highest, filter words where the highest is less than 0.05
+
+#wv = api.load("word2vec-google-news-300")  # load glove vectors
 
 #word_list_filled.append(similar_symptoms)
 
@@ -162,7 +166,28 @@ fig.update_layout(
     height=700
 )
 
-fig.show()
+def run_server(fig):
+    app = Dash(__name__)
+    app.layout = html.Div(children=[
+        html.H1(children='Hello Dash'),
+
+        html.Div(children='''
+            Dash: A web application framework for your data.
+        '''),
+
+        dcc.Graph(
+            id='example-graph',
+            figure=fig
+        )
+    ])
+
+
+    if __name__ == '__main__':
+        app.run_server(debug=True)
+
+
+run_server(fig)
+#fig.show()
 
 #fig.write_html("server/bar_chart_simple.html", auto_play=False, include_plotlyjs="cdn")
 
