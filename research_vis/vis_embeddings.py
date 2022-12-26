@@ -12,9 +12,21 @@ import networkx as nx
 from sklearn.decomposition import IncrementalPCA    # inital reduction
 from sklearn.manifold import TSNE                   # final reduction
 from sklearn.decomposition import PCA
-import umap
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import DBSCAN
+from umap import UMAP
 import numpy as np
+import time
 
+
+def perform_dbscan(data):
+    scaler = StandardScaler()
+    scaler = scaler.fit(data)
+    scaled_p = scaler.transform(data)
+    clustering = DBSCAN(eps=0.5, min_samples=5).fit(scaled_p)
+    labels = clustering.labels_
+    print(labels)
+    return 0
 
 def reduce_dimensions(wv, word_list):
     num_dimensions = 2  # final num dimensions (2D, 3D, etc)
@@ -31,8 +43,9 @@ def reduce_dimensions(wv, word_list):
     labels = np.asarray(lab)  # fixed-width numpy strings
 
     # reduce using t-SNE
-    tsne = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
-    vectors = tsne.fit_transform(vectors)
+    red = UMAP(n_components=num_dimensions, init='random', random_state=0)
+    #red = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
+    vectors = red.fit_transform(vectors)
 
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
@@ -55,6 +68,7 @@ def reduce_pca(wv, word_list):
     pca = PCA(n_components=num_dimensions)
     vectors = pca.fit_transform(vectors)
     #print(vectors)
+    #perform_dbscan(vectors)
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
     return x_vals, y_vals, labels
@@ -65,20 +79,28 @@ model_name = helpers.fetch_model_name()
 
 new_model = gensim.models.Word2Vec.load(f"{model_name}")
 wv = new_model.wv
-labels = np.asarray(wv.index_to_key[:100])
+#labels = np.asarray(wv.index_to_key[:100])
+labels = np.asarray(wv.index_to_key)
 
-text_files = glob.glob("./tf_idf/*.csv")
 # Go through all of the words of tf-idf and get the highest value, map it to the chapter where it is highest, filter words where the highest is less than 0.05
 
 #wv = api.load("word2vec-google-news-300")  # load glove vectors
 
 #word_list_filled.append(similar_symptoms)
 
+start_time = time.time()
+
 x_vals, y_vals, labels = reduce_dimensions(wv, labels)
+
+print(f"Time taken to create UMAP mapping: {time.time() - start_time}")
+start_time = time.time()
 
 x_vals_pca, y_vals_pca, labels_pca = reduce_pca(wv, labels)
 
+print(f"Time taken to create PCA mapping: {time.time() - start_time}")
 
+
+print(len(x_vals))
 
 fig = make_subplots(rows=1, cols=2,
                     vertical_spacing=0.02,
@@ -106,6 +128,8 @@ for node in G.nodes():
 circles_pca = {}
 circles = {}
 
+start_time = time.time()
+
 for i in range(0, len(labels)):
     x_pca = x_vals_pca[i]
     y_pca = y_vals_pca[i]
@@ -128,6 +152,9 @@ for i in range(0, len(labels)):
         x0=x_pca - 0.15, y0=y_pca - 0.15,
         x1=x_pca + 0.15, y1=y_pca + 0.15,
         line=dict(color="DarkOrange")))
+
+print(f"Time taken to calculate circles: {time.time() - start_time}")
+
 
 #trace = go.Scatter(x=x_vals, y=y_vals, mode='text', text=labels)
 trace1 = go.Scatter(x=x_vals, y=y_vals, mode="markers", text=labels, name="words")
