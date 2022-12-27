@@ -16,6 +16,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import DBSCAN
 from umap import UMAP
 import numpy as np
+import pandas as pd
 import time
 
 
@@ -82,6 +83,25 @@ wv = new_model.wv
 #labels = np.asarray(wv.index_to_key[:100])
 labels = np.asarray(wv.index_to_key)
 
+print(len(labels))
+print(labels[0])
+
+colorscale = []
+
+tfidf_df = pd.read_csv("./tf_idf/result_total.csv", sep=",", header=0, usecols=["term", "chapter", "tfidf"])
+print(tfidf_df)
+for word in labels:
+    chapter = tfidf_df.loc[tfidf_df['term'] == word]
+    if chapter.empty:
+        colorscale.append(137)
+    else:
+        chapter = chapter["chapter"].values[0]
+        if chapter == "Epilogue":
+            colorscale.append(136)
+        else:
+            split = chapter.split(" ")
+            colorscale.append(int(split[1]))
+        
 # Go through all of the words of tf-idf and get the highest value, map it to the chapter where it is highest, filter words where the highest is less than 0.05
 
 #wv = api.load("word2vec-google-news-300")  # load glove vectors
@@ -154,11 +174,36 @@ for i in range(0, len(labels)):
         line=dict(color="DarkOrange")))
 
 print(f"Time taken to calculate circles: {time.time() - start_time}")
+start_time = time.time()
 
 
 #trace = go.Scatter(x=x_vals, y=y_vals, mode='text', text=labels)
-trace1 = go.Scatter(x=x_vals, y=y_vals, mode="markers", text=labels, name="words")
-trace2 = go.Scatter(x=x_vals_pca, y=y_vals_pca, mode="markers", text=labels_pca, name="words")
+trace1 = go.Scatter(
+    x=x_vals,
+    y=y_vals,
+    mode="markers",
+    text=labels,
+    marker=dict(
+        color=colorscale,
+        colorbar=dict(
+            title="Colorbar"
+        ),
+        colorscale="Viridis"
+    ),
+    name="words")
+trace2 = go.Scatter(
+    x=x_vals_pca,
+    y=y_vals_pca,
+    mode="markers",
+    marker=dict(
+        color=colorscale,
+        colorbar=dict(
+            title="Colorbar"
+        ),
+        colorscale="Viridis"
+    ),
+    text=labels_pca,
+    name="words")
 
 fig.append_trace(trace1,1,1)
 fig.append_trace(trace2,1,2)
@@ -192,6 +237,9 @@ fig.update_layout(
     margin={"l": 0, "r": 0, "t": 25, "b": 0},
     height=700
 )
+
+print(f"Time taken to create graph: {time.time() - start_time}")
+start_time = time.time()
 
 def run_server(fig):
     app = Dash(__name__)
@@ -276,6 +324,8 @@ def run_server(fig):
 
 
 run_server(fig)
+
+print(f"Time taken to start server: {time.time() - start_time}")
 #fig.show()
 
 #fig.write_html("server/bar_chart_simple.html", auto_play=False, include_plotlyjs="cdn")

@@ -106,8 +106,10 @@ tfidf_df = tfidf_df.loc[tfidf_df["tfidf"] > 0.0 ]
 
 tfidf_df = tfidf_df.sort_values(by=['chapter','tfidf'], ascending=[True,False])#.groupby(['chapter']).head(100)
 
+chapters = tfidf_df['chapter'].unique()
+
 for chapter in text_titles:
     if not os.path.exists("./tf_idf"):
         os.mkdir("./tf_idf")
-    terms = tfidf_df[tfidf_df['chapter'].str.contains(chapter)]
+    terms = tfidf_df[tfidf_df['chapter'] == chapter]
     terms.to_csv(f"tf_idf/result_{chapter}.csv")
