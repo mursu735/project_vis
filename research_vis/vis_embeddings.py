@@ -6,6 +6,7 @@ import gensim.downloader as api
 import plotly.graph_objects as go
 import dash
 from dash import Dash, html, dcc
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 from plotly.subplots import make_subplots
 import networkx as nx
@@ -19,6 +20,22 @@ import numpy as np
 import pandas as pd
 import time
 
+def get_tfidf_chapter(labels):
+    result = []
+    tfidf_df = pd.read_csv("./tf_idf/result_total.csv", sep=",", header=0, usecols=["term", "chapter", "tfidf"])
+    #print(tfidf_df)
+    for word in labels:
+        chapter = tfidf_df.loc[tfidf_df['term'] == word]
+        if chapter.empty:
+            result.append(137)
+        else:
+            chapter = chapter["chapter"].values[0]
+            if chapter == "Epilogue":
+                result.append(136)
+            else:
+                split = chapter.split(" ")
+                result.append(int(split[1]))
+    return result
 
 def perform_dbscan(data):
     scaler = StandardScaler()
@@ -26,8 +43,8 @@ def perform_dbscan(data):
     scaled_p = scaler.transform(data)
     clustering = DBSCAN(eps=0.5, min_samples=5).fit(scaled_p)
     labels = clustering.labels_
-    print(labels)
-    return 0
+    print(len(labels))
+    return labels
 
 def reduce_dimensions(wv, word_list):
     num_dimensions = 2  # final num dimensions (2D, 3D, etc)
@@ -44,13 +61,18 @@ def reduce_dimensions(wv, word_list):
     labels = np.asarray(lab)  # fixed-width numpy strings
 
     # reduce using t-SNE
-    red = UMAP(n_components=num_dimensions, init='random', random_state=0)
+    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=10, min_dist=0.1)
     #red = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
     vectors = red.fit_transform(vectors)
+    print("DBSCAN for UMAP:")
+    dbscan = perform_dbscan(vectors)
 
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
-    return x_vals, y_vals, labels
+    chapters = get_tfidf_chapter(labels)
+    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapters}
+    df = pd.DataFrame(data=data)
+    return df
 
 def reduce_pca(wv, word_list):
     num_dimensions = 2  # final num dimensions (2D, 3D, etc)
@@ -69,10 +91,14 @@ def reduce_pca(wv, word_list):
     pca = PCA(n_components=num_dimensions)
     vectors = pca.fit_transform(vectors)
     #print(vectors)
-    #perform_dbscan(vectors)
+    print("DBSCAN for PCA")
+    dbscan = perform_dbscan(vectors)
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
-    return x_vals, y_vals, labels
+    chapters = get_tfidf_chapter(labels)
+    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapters}
+    df = pd.DataFrame(data=data)
+    return df
 
 model_name = helpers.fetch_model_name()
 
@@ -80,27 +106,13 @@ model_name = helpers.fetch_model_name()
 
 new_model = gensim.models.Word2Vec.load(f"{model_name}")
 wv = new_model.wv
-#labels = np.asarray(wv.index_to_key[:100])
+#labels = np.asarray(wv.index_to_key[:500])
 labels = np.asarray(wv.index_to_key)
 
 print(len(labels))
-print(labels[0])
 
-colorscale = []
+colorscale = get_tfidf_chapter(labels)
 
-tfidf_df = pd.read_csv("./tf_idf/result_total.csv", sep=",", header=0, usecols=["term", "chapter", "tfidf"])
-print(tfidf_df)
-for word in labels:
-    chapter = tfidf_df.loc[tfidf_df['term'] == word]
-    if chapter.empty:
-        colorscale.append(137)
-    else:
-        chapter = chapter["chapter"].values[0]
-        if chapter == "Epilogue":
-            colorscale.append(136)
-        else:
-            split = chapter.split(" ")
-            colorscale.append(int(split[1]))
         
 # Go through all of the words of tf-idf and get the highest value, map it to the chapter where it is highest, filter words where the highest is less than 0.05
 
@@ -110,17 +122,17 @@ for word in labels:
 
 start_time = time.time()
 
-x_vals, y_vals, labels = reduce_dimensions(wv, labels)
+df_umap = reduce_dimensions(wv, labels)
 
 print(f"Time taken to create UMAP mapping: {time.time() - start_time}")
 start_time = time.time()
 
-x_vals_pca, y_vals_pca, labels_pca = reduce_pca(wv, labels)
+df_pca = reduce_pca(wv, labels)
 
 print(f"Time taken to create PCA mapping: {time.time() - start_time}")
 
 
-print(len(x_vals))
+#print(len(x_vals))
 
 fig = make_subplots(rows=1, cols=2,
                     vertical_spacing=0.02,
@@ -149,24 +161,35 @@ circles_pca = {}
 circles = {}
 
 start_time = time.time()
+length = len(df_umap)
 
-for i in range(0, len(labels)):
+for i in range(0, length):
+    umap_cur = df_umap.iloc[i]
+    pca_cur = df_pca.iloc[i]
+    '''
     x_pca = x_vals_pca[i]
     y_pca = y_vals_pca[i]
     x = x_vals[i]
     y = y_vals[i]
-    if labels[i] not in circles:
-        circles[labels[i]] = []
-    if labels_pca[i] not in circles:
-        circles[labels_pca[i]] = []
+    '''
+    label_umap = umap_cur["labels"]
+    label_pca = pca_cur["labels"]
+    if label_umap not in circles:
+        circles[label_umap] = []
+    if label_pca not in circles:
+        circles[label_pca] = []
 
-    circles[labels[i]].append(dict(
+    x_umap = umap_cur["x"]
+    y_umap = umap_cur["y"]
+    x_pca = pca_cur["x"]
+    y_pca = pca_cur["y"]
+    circles[label_umap].append(dict(
         type="circle",
         xref="x1", yref="y1",
-        x0=x - 5, y0=y - 5,
-        x1=x + 5, y1=y + 5,
+        x0=x_umap - 5, y0=y_umap - 5,
+        x1=x_umap + 5, y1=y_umap + 5,
         line=dict(color="DarkOrange")))
-    circles[labels_pca[i]].append(dict(
+    circles[label_pca].append(dict(
         type="circle",
         xref="x2", yref="y2",
         x0=x_pca - 0.15, y0=y_pca - 0.15,
@@ -178,31 +201,31 @@ start_time = time.time()
 
 
 #trace = go.Scatter(x=x_vals, y=y_vals, mode='text', text=labels)
-trace1 = go.Scatter(
-    x=x_vals,
-    y=y_vals,
+trace1 = go.Scattergl(
+    x=df_umap["x"],
+    y=df_umap["y"],
     mode="markers",
-    text=labels,
+    text=df_umap["labels"],
     marker=dict(
-        color=colorscale,
-        colorbar=dict(
-            title="Colorbar"
-        ),
-        colorscale="Viridis"
+        color=df_umap["cluster"],
+        #colorbar=dict(
+        #    title="Colorbar"
+        #),
+        #colorscale="Viridis"
     ),
     name="words")
-trace2 = go.Scatter(
-    x=x_vals_pca,
-    y=y_vals_pca,
+trace2 = go.Scattergl(
+    x=df_pca["x"],
+    y=df_pca["y"],
     mode="markers",
     marker=dict(
-        color=colorscale,
-        colorbar=dict(
-            title="Colorbar"
-        ),
-        colorscale="Viridis"
+        color=df_umap["cluster"],
+        #colorbar=dict(
+        #    title="Colorbar"
+        #),
+        #colorscale="Viridis"
     ),
-    text=labels_pca,
+    text=df_pca["labels"],
     name="words")
 
 fig.append_trace(trace1,1,1)
@@ -215,29 +238,34 @@ def highlight_group(group):
         result.append(colors)
     return result
 
+def set_color(color):
+    if color == "chapter":
+        return colorscale
+'''
+buttons = [
+    {
+        "label": group,
+        "method": "update",
+        "args": [
+            {"marker.color": highlight_group(group)},
+            {
+                "shapes": circles[group]
+            }
+        ],
+    }
+    for group in labels
+]
+
 fig.update_layout(
     updatemenus=[
         {
-            "buttons": [
-                {
-                    "label": group,
-                    "method": "update",
-                    "args": [
-                        {"marker.color": highlight_group(group)},
-                        {
-                            "shapes": circles[group]
-                        }
-                        
-                    ],
-                }
-                for group in labels
-            ]
+            "buttons": buttons,
         }
     ],
     margin={"l": 0, "r": 0, "t": 25, "b": 0},
     height=700
 )
-
+'''
 print(f"Time taken to create graph: {time.time() - start_time}")
 start_time = time.time()
 
@@ -255,18 +283,36 @@ def run_server(fig):
             figure=fig
         ),
 
-        html.Div([
-            dcc.Markdown("""
-                **Click Data**
+        dbc.Row(
+            [
+                dbc.Col(html.Div("One of three columns")),
+                dbc.Col(html.Div("One of three columns")),
+                dbc.Col(html.Div("One of three columns")),
+            ]),
 
-                Click on points in the graph.
-            """),
-            html.Pre(id='click-data'),
-        ], className='three columns'),
+        dbc.Row(
+            [
+                dbc.Col(html.Div([dcc.Markdown("""
+                        **Click Data**
+
+                        Words in the same chapter.
+                    """),
+                    html.Pre(id='click-data')])),
+                    
+                dbc.Col(html.Div([dcc.Markdown("""
+                    **Click Data**
+
+                    Words in the same cluster. 
+                """),
+                html.Pre(id='cluster-data')]))
+            ]
+        ),
     ])
     
     @app.callback(
         Output('example-graph', 'figure'),
+        Output('click-data', 'children'),
+        Output('cluster-data', 'children'),
         Input('example-graph', 'clickData'))
     def display_click_data(clickData):
         #print(type(clickData))
@@ -275,12 +321,12 @@ def run_server(fig):
                     vertical_spacing=0.02,
                     subplot_titles=("Embeddings reduced with tSNE", "Embeddings reduced with PCA"))
             text = clickData["points"][0]["text"]
-            index = np.where(labels == text)[0][0].item()
-            index_pca = np.where(labels_pca == text)[0][0].item()
-            trace1 = go.Scatter(x=x_vals, y=y_vals, mode="markers", text=labels, marker=dict(color="black"), name="words")
-            trace1_hl = go.Scatter(x=[x_vals[index]], y=[y_vals[index]], mode="markers", text=[labels[index]], marker=dict(color="red"), name="Highlighted word")
-            trace2 = go.Scatter(x=x_vals_pca, y=y_vals_pca, mode="markers", text=labels_pca, marker=dict(color="black"), name="words")
-            trace2_hl = go.Scatter(x=[x_vals_pca[index_pca]], y=[y_vals_pca[index_pca]], mode="markers", text=[labels_pca[index_pca]], marker=dict(color="red"), name="Highlighted word")
+            highlight_umap = df_umap.loc[df_umap['labels'] == text]
+            highlight_pca = df_pca.loc[df_pca['labels'] == text]
+            trace1 = go.Scattergl(x=df_umap["x"], y=df_umap["y"], mode="markers", text=labels, marker=dict(color="black"), name="words")
+            trace1_hl = go.Scattergl(x=highlight_umap["x"], y=highlight_umap["y"], mode="markers", text=highlight_umap["labels"], marker=dict(color="red"), name="Highlighted word")
+            trace2 = go.Scattergl(x=df_pca["x"], y=df_pca["y"], mode="markers", text=df_pca["labels"], marker=dict(color="black"), name="words")
+            trace2_hl = go.Scattergl(x=highlight_pca["x"], y=highlight_pca["y"], mode="markers", text=highlight_pca["labels"], marker=dict(color="red"), name="Highlighted word")
 
             fig.append_trace(trace1,1,1)
             fig.append_trace(trace1_hl,1,1)
@@ -290,7 +336,7 @@ def run_server(fig):
             #fig.update_traces(marker=dict(color=updated))
             for shape in circles[text]:
                 fig.add_shape(shape)
-            
+            '''
             fig.update_layout(
                 updatemenus=[
                     {
@@ -313,9 +359,16 @@ def run_server(fig):
                 margin={"l": 0, "r": 0, "t": 25, "b": 0},
                 height=700
             )
-            return fig
+            '''
+            chapter = df_umap[df_umap["labels"] == text]["chapter"].values[0]
+            #print(chapter)
+            word_list = df_umap[df_umap["chapter"] == chapter]["labels"]
+            #print(word_list)
+            word_cluster = highlight_umap["cluster"].values[0]
+            words_in_cluster = df_umap[df_umap["cluster"] == word_cluster]["labels"]
+            return fig, "\n".join(words_in_cluster), "\n".join(word_list)
 
-        return dash.no_update
+        return dash.no_update, [], []
         #return json.dumps(clickData, indent=2)
 
 

@@ -33,12 +33,12 @@ Check coordinate 42.20621 93.3021
 
 Check messages 5/17 afternoon near 610, might be spillage
 
-
+=============================================================================
 
 Take a long text, vectorize it, visualize the embeddings, apply umap and PCA, visualize side by side, select word from list, highlight word and show it in both umap and PCA (DONE! (mainly))
-Select cluster of words, highlight them in PCA, dbscan over output
+Select cluster of words, print the words in a text box, highlight them in PCA, dbscan over output
 Filter words, use tf-idf
-Use doc2vec with paragraphs 
-Color enconding, what chapter is the tf-idf the highest
-Change t-SNE to umap, change dataset from own model to pretrained google 300 vector dataset, but use labels from the trained data
+Use doc2vec with paragraphs
+Color enconding, what chapter is the tf-idf the highest (can be switched by commenting stuff out, adding a switch would make it look better)
+Change t-SNE to umap, change dataset from own model to pretrained google 300 vector dataset, but use labels from the trained data (umap done, model can be switched by commenting the line that selects the model)
 Apply NLP techniques like nre to extract important events at a glance
