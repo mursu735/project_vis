@@ -21,21 +21,26 @@ import pandas as pd
 import time
 
 def get_tfidf_chapter(labels):
-    result = []
+    result_chapter = []
+    result_tfidf = []
     tfidf_df = pd.read_csv("./tf_idf/result_total.csv", sep=",", header=0, usecols=["term", "chapter", "tfidf"])
-    #print(tfidf_df)
+    max_tfidf = tfidf_df.iloc[0]["tfidf"]
+    print(f"Max: {max_tfidf}")
     for word in labels:
         chapter = tfidf_df.loc[tfidf_df['term'] == word]
+        # Should not happen
         if chapter.empty:
-            result.append(137)
+            result_chapter.append(137)
+            result_tfidf.append(0.0)
         else:
+            result_tfidf.append(chapter["tfidf"].values[0] / max_tfidf)
             chapter = chapter["chapter"].values[0]
             if chapter == "Epilogue":
-                result.append(136)
+                result_chapter.append(136)
             else:
                 split = chapter.split(" ")
-                result.append(int(split[1]))
-    return result
+                result_chapter.append(int(split[1]))
+    return result_chapter, result_tfidf
 
 def perform_dbscan(data):
     scaler = StandardScaler()
@@ -61,7 +66,7 @@ def reduce_dimensions(wv, word_list):
     labels = np.asarray(lab)  # fixed-width numpy strings
 
     # reduce using t-SNE
-    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=10, min_dist=0.1)
+    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=15, min_dist=0.1)
     #red = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
     vectors = red.fit_transform(vectors)
     print("DBSCAN for UMAP:")
@@ -69,8 +74,8 @@ def reduce_dimensions(wv, word_list):
 
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
-    chapters = get_tfidf_chapter(labels)
-    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapters}
+    chapter_tuple = get_tfidf_chapter(labels)
+    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapter_tuple[0], "opacity": chapter_tuple[1]}
     df = pd.DataFrame(data=data)
     return df
 
@@ -95,23 +100,80 @@ def reduce_pca(wv, word_list):
     dbscan = perform_dbscan(vectors)
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
-    chapters = get_tfidf_chapter(labels)
-    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapters}
+    chapter_tuple = get_tfidf_chapter(labels)
+    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapter_tuple[0], "opacity": chapter_tuple[1]}
     df = pd.DataFrame(data=data)
     return df
+
+def get_plot(df_umap, df_pca):
+    fig = make_subplots(rows=1, cols=2,
+                    vertical_spacing=0.02,
+                    subplot_titles=("Embeddings reduced with tSNE", "Embeddings reduced with PCA"))
+
+    trace1 = go.Scattergl(
+        x=df_umap["x"],
+        y=df_umap["y"],
+        mode="markers",
+        text=df_umap["labels"],
+        marker=dict(
+            color=df_umap["chapter"],
+            colorbar=dict(
+                title="Colorbar"
+            ),
+            colorscale="Viridis",
+            opacity=df_umap["opacity"]
+        ),
+        name="words")
+
+    trace2 = go.Scattergl(
+        x=df_pca["x"],
+        y=df_pca["y"],
+        mode="markers",
+        marker=dict(
+            color=df_umap["chapter"],
+            colorbar=dict(
+                title="Colorbar"
+            ),
+            colorscale="Viridis",
+            opacity=df_umap["opacity"]
+        ),
+        text=df_pca["labels"],
+        name="words")
+
+    fig.append_trace(trace1,1,1)
+    fig.append_trace(trace2,1,2)
+    return fig
+
+
 
 model_name = helpers.fetch_model_name()
 
 #print(model_name)
 
 new_model = gensim.models.Word2Vec.load(f"{model_name}")
-wv = new_model.wv
+#wv = api.load('word2vec-google-news-300')
 #labels = np.asarray(wv.index_to_key[:500])
-labels = np.asarray(wv.index_to_key)
+
+trained_model = new_model.wv
+model_labels = np.asarray(trained_model.index_to_key)
+
+tfidf_df = pd.read_csv("./tf_idf/result_total.csv", sep=",", header=0, usecols=["term", "chapter", "tfidf"])
+filtered = tfidf_df[tfidf_df["term"].isin(model_labels)]
+filtered = filtered[filtered["chapter"] != "filler_text"]
+
+labels = filtered[filtered["tfidf"] >= 0.05]["term"].values
+
+#labels = tfidf_df["term"].values
+
+print(f"Final labels: {labels}")
+print(len(labels))
+
+#wv = api.load('word2vec-google-news-300')
+wv = new_model.wv
 
 print(len(labels))
 
-colorscale = get_tfidf_chapter(labels)
+#colorscale = get_tfidf_chapter(labels)
 
         
 # Go through all of the words of tf-idf and get the highest value, map it to the chapter where it is highest, filter words where the highest is less than 0.05
@@ -133,10 +195,12 @@ print(f"Time taken to create PCA mapping: {time.time() - start_time}")
 
 
 #print(len(x_vals))
-
+fig = get_plot(df_umap, df_pca)
+'''
 fig = make_subplots(rows=1, cols=2,
                     vertical_spacing=0.02,
                     subplot_titles=("Embeddings reduced with tSNE", "Embeddings reduced with PCA"))
+'''
 '''
 G = nx.Graph()
 
@@ -199,38 +263,6 @@ for i in range(0, length):
 print(f"Time taken to calculate circles: {time.time() - start_time}")
 start_time = time.time()
 
-
-#trace = go.Scatter(x=x_vals, y=y_vals, mode='text', text=labels)
-trace1 = go.Scattergl(
-    x=df_umap["x"],
-    y=df_umap["y"],
-    mode="markers",
-    text=df_umap["labels"],
-    marker=dict(
-        color=df_umap["cluster"],
-        #colorbar=dict(
-        #    title="Colorbar"
-        #),
-        #colorscale="Viridis"
-    ),
-    name="words")
-trace2 = go.Scattergl(
-    x=df_pca["x"],
-    y=df_pca["y"],
-    mode="markers",
-    marker=dict(
-        color=df_umap["cluster"],
-        #colorbar=dict(
-        #    title="Colorbar"
-        #),
-        #colorscale="Viridis"
-    ),
-    text=df_pca["labels"],
-    name="words")
-
-fig.append_trace(trace1,1,1)
-fig.append_trace(trace2,1,2)
-
 def highlight_group(group):
     result = []
     for tracer_ix, tracer in enumerate(fig["data"]):
@@ -238,9 +270,6 @@ def highlight_group(group):
         result.append(colors)
     return result
 
-def set_color(color):
-    if color == "chapter":
-        return colorscale
 '''
 buttons = [
     {
@@ -270,7 +299,7 @@ print(f"Time taken to create graph: {time.time() - start_time}")
 start_time = time.time()
 
 def run_server(fig):
-    app = Dash(__name__)
+    app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
     app.layout = html.Div(children=[
         html.H1(children='Hello Dash'),
 
@@ -283,12 +312,9 @@ def run_server(fig):
             figure=fig
         ),
 
-        dbc.Row(
-            [
-                dbc.Col(html.Div("One of three columns")),
-                dbc.Col(html.Div("One of three columns")),
-                dbc.Col(html.Div("One of three columns")),
-            ]),
+        html.Button('Reset graph', n_clicks=0, id='reset-graph'),
+
+        html.Div(children=["Selected word", html.Pre(id='selected-word')]),
 
         dbc.Row(
             [
@@ -313,9 +339,15 @@ def run_server(fig):
         Output('example-graph', 'figure'),
         Output('click-data', 'children'),
         Output('cluster-data', 'children'),
-        Input('example-graph', 'clickData'))
-    def display_click_data(clickData):
-        #print(type(clickData))
+        Output('selected-word', 'children'),
+        Input('example-graph', 'clickData'),
+        Input('reset-graph', 'n_clicks'))
+    def display_click_data(clickData, n_clicks):
+        ctx = dash.callback_context
+        clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
+        if clicked_element == "reset-graph":
+            fig = get_plot(df_umap, df_pca)
+            return fig, [], [], "None"
         if isinstance(clickData, dict):
             fig = make_subplots(rows=1, cols=2,
                     vertical_spacing=0.02,
@@ -366,11 +398,10 @@ def run_server(fig):
             #print(word_list)
             word_cluster = highlight_umap["cluster"].values[0]
             words_in_cluster = df_umap[df_umap["cluster"] == word_cluster]["labels"]
-            return fig, "\n".join(words_in_cluster), "\n".join(word_list)
+            return fig, "\n".join(words_in_cluster), "\n".join(word_list), text
 
-        return dash.no_update, [], []
+        return dash.no_update, [], [], "None"
         #return json.dumps(clickData, indent=2)
-
 
     if __name__ == '__main__':
         app.run_server(debug=True)

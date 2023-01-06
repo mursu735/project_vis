@@ -4,6 +4,7 @@ MC_1_Materials_3-30-2011/*.pdf
 *.txt
 __pycache__/
 gensim-model*
+doc2vec-model*
 .DS_Store
 Binary_classification/*.csv
 Binary_classification/Training_data/*.csv

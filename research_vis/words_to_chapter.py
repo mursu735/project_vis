@@ -36,6 +36,7 @@ for chapter in tfidf_files:
 
 #asd = result.loc[result['term'] == "set"]["tfidf"]
 #print(asd)
+result = result.sort_values(by=['tfidf'], ascending=[False])
 print(result)
 result.to_csv("tf_idf/result_total.csv")
     

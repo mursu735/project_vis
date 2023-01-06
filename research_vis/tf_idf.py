@@ -83,8 +83,7 @@ def separate_text_to_chapters():
 directory_path = "./Chapters/"
 if not os.path.exists(directory_path):
     os.mkdir(directory_path)
-
-separate_text_to_chapters()
+    separate_text_to_chapters()
 
 text_files = glob.glob(f"{directory_path}/*.txt")
 print(text_files)

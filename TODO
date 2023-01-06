@@ -36,9 +36,14 @@ Check messages 5/17 afternoon near 610, might be spillage
 =============================================================================
 
 Take a long text, vectorize it, visualize the embeddings, apply umap and PCA, visualize side by side, select word from list, highlight word and show it in both umap and PCA (DONE! (mainly))
-Select cluster of words, print the words in a text box, highlight them in PCA, dbscan over output
+Select cluster of words, print the words in a text box, highlight them in PCA, dbscan over output (done)
 Filter words, use tf-idf
-Use doc2vec with paragraphs
 Color enconding, what chapter is the tf-idf the highest (can be switched by commenting stuff out, adding a switch would make it look better)
 Change t-SNE to umap, change dataset from own model to pretrained google 300 vector dataset, but use labels from the trained data (umap done, model can be switched by commenting the line that selects the model)
 Apply NLP techniques like nre to extract important events at a glance
+
+Can Sklearn support giving base text corpus versus target corpus? (New text files can be added, unclear whether they should also be split into chapters)
+Focus on higher tf-idf (filtering done, threshold can be changed easily)
+Maybe change colorscale between cluster and chapter (can be done manually but would be nice to have it as a radio button)
+Opacity based on how big the tf-idf is (done)
+Use doc2vec with paragraphs (started with this)
