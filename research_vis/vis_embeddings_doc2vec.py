@@ -20,28 +20,6 @@ import numpy as np
 import pandas as pd
 import time
 
-def get_tfidf_chapter(labels):
-    result_chapter = []
-    result_tfidf = []
-    tfidf_df = pd.read_csv("./tf_idf/result_total.csv", sep=",", header=0, usecols=["term", "chapter", "tfidf"])
-    max_tfidf = tfidf_df.iloc[0]["tfidf"]
-    print(f"Max: {max_tfidf}")
-    for word in labels:
-        chapter = tfidf_df.loc[tfidf_df['term'] == word]
-        # Should not happen
-        if chapter.empty:
-            result_chapter.append(137)
-            result_tfidf.append(0.0)
-        else:
-            result_tfidf.append(chapter["tfidf"].values[0] / max_tfidf)
-            chapter = chapter["chapter"].values[0]
-            if chapter == "Epilogue":
-                result_chapter.append(136)
-            else:
-                split = chapter.split(" ")
-                result_chapter.append(int(split[1]))
-    return result_chapter, result_tfidf
-
 def perform_dbscan(data):
     scaler = StandardScaler()
     scaler = scaler.fit(data)
@@ -57,16 +35,25 @@ def reduce_dimensions(dv, tag_list):
     # extract the words & their vectors, as numpy arrays
     vec = []
     lab = []
+    chapter = []
     for tag in tag_list:
-        asd = dv.get_vector(word)
+        asd = dv.get_vector(tag)
         vec.append(asd)
         lab.append(tag)
+        split = tag.split("/")
+        split2 = split[0].split(" ")
+        tag = ""
+        if len(split2) == 1:
+            tag = 136
+        else:
+            tag = int(split2[1])
+        chapter.append(tag)
 
     vectors = np.asarray(vec)
     labels = np.asarray(lab)  # fixed-width numpy strings
 
     # reduce using t-SNE
-    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=15, min_dist=0.1)
+    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=15, min_dist=0.15)
     #red = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
     vectors = red.fit_transform(vectors)
     print("DBSCAN for UMAP:")
@@ -74,8 +61,7 @@ def reduce_dimensions(dv, tag_list):
 
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
-    chapter_tuple = get_tfidf_chapter(labels)
-    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapter_tuple[0], "opacity": chapter_tuple[1]}
+    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapter}
     df = pd.DataFrame(data=data)
     return df
 
@@ -100,8 +86,7 @@ def reduce_pca(dv, tag_list):
     dbscan = perform_dbscan(vectors)
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
-    chapter_tuple = get_tfidf_chapter(labels)
-    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapter_tuple[0], "opacity": chapter_tuple[1]}
+    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan}
     df = pd.DataFrame(data=data)
     return df
 
@@ -121,7 +106,6 @@ def get_plot(df_umap, df_pca):
                 title="Colorbar"
             ),
             colorscale="Viridis",
-            opacity=df_umap["opacity"]
         ),
         name="words")
 
@@ -129,15 +113,14 @@ def get_plot(df_umap, df_pca):
         x=df_pca["x"],
         y=df_pca["y"],
         mode="markers",
+        text=df_pca["labels"],
         marker=dict(
             color=df_umap["chapter"],
             colorbar=dict(
                 title="Colorbar"
             ),
             colorscale="Viridis",
-            opacity=df_umap["opacity"]
         ),
-        text=df_pca["labels"],
         name="words")
 
     fig.append_trace(trace1,1,1)
@@ -146,7 +129,7 @@ def get_plot(df_umap, df_pca):
 
 
 
-model_name = helpers.fetch_doc2vec_model_namemodel_name()
+model_name = helpers.fetch_doc2vec_model_name()
 
 #print(model_name)
 
@@ -287,9 +270,11 @@ def run_server(fig):
     def display_click_data(clickData, n_clicks):
         ctx = dash.callback_context
         clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
+        # Clicked on reset button
         if clicked_element == "reset-graph":
             fig = get_plot(df_umap, df_pca)
             return fig, [], [], "None"
+        # Clicked on the graph
         if isinstance(clickData, dict):
             fig = make_subplots(rows=1, cols=2,
                     vertical_spacing=0.02,
@@ -297,7 +282,7 @@ def run_server(fig):
             text = clickData["points"][0]["text"]
             highlight_umap = df_umap.loc[df_umap['labels'] == text]
             highlight_pca = df_pca.loc[df_pca['labels'] == text]
-            trace1 = go.Scattergl(x=df_umap["x"], y=df_umap["y"], mode="markers", text=labels, marker=dict(color="black"), name="words")
+            trace1 = go.Scattergl(x=df_umap["x"], y=df_umap["y"], mode="markers", text=df_umap["labels"], marker=dict(color="black"), name="words")
             trace1_hl = go.Scattergl(x=highlight_umap["x"], y=highlight_umap["y"], mode="markers", text=highlight_umap["labels"], marker=dict(color="red"), name="Highlighted word")
             trace2 = go.Scattergl(x=df_pca["x"], y=df_pca["y"], mode="markers", text=df_pca["labels"], marker=dict(color="black"), name="words")
             trace2_hl = go.Scattergl(x=highlight_pca["x"], y=highlight_pca["y"], mode="markers", text=highlight_pca["labels"], marker=dict(color="red"), name="Highlighted word")

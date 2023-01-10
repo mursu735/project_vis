@@ -20,6 +20,11 @@ import numpy as np
 import pandas as pd
 import time
 
+lock_graph = False
+prev_word = ""
+prev_cluster = ""
+prev_chapter = ""
+
 def get_tfidf_chapter(labels):
     result_chapter = []
     result_tfidf = []
@@ -66,7 +71,7 @@ def reduce_dimensions(wv, word_list):
     labels = np.asarray(lab)  # fixed-width numpy strings
 
     # reduce using t-SNE
-    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=15, min_dist=0.1)
+    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=12, min_dist=0.12)
     #red = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
     vectors = red.fit_transform(vectors)
     print("DBSCAN for UMAP:")
@@ -105,38 +110,36 @@ def reduce_pca(wv, word_list):
     df = pd.DataFrame(data=data)
     return df
 
-def get_plot(df_umap, df_pca):
+def get_plot(df_umap, df_pca, mode, opacity):
     fig = make_subplots(rows=1, cols=2,
                     vertical_spacing=0.02,
                     subplot_titles=("Embeddings reduced with tSNE", "Embeddings reduced with PCA"))
+    color_dict = {}
+    if mode == "Chapter":
+        color_dict["color"] = df_umap["chapter"]
+        color_dict["colorbar"] = {"title": "Colorbar"}
+        color_dict["colorscale"] = "Viridis"
+    elif mode == "Cluster":
+        color_dict["color"] = df_umap["cluster"]
+
+    if opacity == "Enable":
+        color_dict["opacity"] = df_umap["opacity"]
+    else:
+        color_dict["opacity"] = [1.0 for i in range(0, len(df_umap["opacity"]))]
 
     trace1 = go.Scattergl(
         x=df_umap["x"],
         y=df_umap["y"],
         mode="markers",
         text=df_umap["labels"],
-        marker=dict(
-            color=df_umap["chapter"],
-            colorbar=dict(
-                title="Colorbar"
-            ),
-            colorscale="Viridis",
-            opacity=df_umap["opacity"]
-        ),
+        marker=color_dict,
         name="words")
 
     trace2 = go.Scattergl(
         x=df_pca["x"],
         y=df_pca["y"],
         mode="markers",
-        marker=dict(
-            color=df_umap["chapter"],
-            colorbar=dict(
-                title="Colorbar"
-            ),
-            colorscale="Viridis",
-            opacity=df_umap["opacity"]
-        ),
+        marker=color_dict,
         text=df_pca["labels"],
         name="words")
 
@@ -195,7 +198,7 @@ print(f"Time taken to create PCA mapping: {time.time() - start_time}")
 
 
 #print(len(x_vals))
-fig = get_plot(df_umap, df_pca)
+fig = get_plot(df_umap, df_pca, "chapter", "Enable")
 '''
 fig = make_subplots(rows=1, cols=2,
                     vertical_spacing=0.02,
@@ -299,6 +302,14 @@ print(f"Time taken to create graph: {time.time() - start_time}")
 start_time = time.time()
 
 def run_server(fig):
+    global lock_graph
+    global prev_chapter
+    global prev_cluster
+    global prev_word
+    lock_graph = False
+    prev_word = ""
+    prev_cluster = ""
+    prev_chapter = ""
     app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
     app.layout = html.Div(children=[
         html.H1(children='Hello Dash'),
@@ -306,6 +317,20 @@ def run_server(fig):
         html.Div(children='''
             Dash: A web application framework for your data.
         '''),
+
+        html.P("Color mode:"),
+        dcc.RadioItems(
+            id='color-mode',
+            value='discrete',
+            options=['Chapter', 'Cluster'],
+        ),
+
+        html.P("Set marker opacity based on tf-idf:"),
+        dcc.RadioItems(
+            id='opacity-mode',
+            value='discrete',
+            options=["Enable", "Disable"],
+        ),
 
         dcc.Graph(
             id='example-graph',
@@ -341,14 +366,31 @@ def run_server(fig):
         Output('cluster-data', 'children'),
         Output('selected-word', 'children'),
         Input('example-graph', 'clickData'),
-        Input('reset-graph', 'n_clicks'))
-    def display_click_data(clickData, n_clicks):
+        Input('reset-graph', 'n_clicks'),
+        Input("color-mode", "value"),
+        Input("opacity-mode", "value"),)
+    def display_click_data(clickData, n_clicks, mode, opacity):
+        global lock_graph
+        global prev_chapter
+        global prev_cluster
+        global prev_word
         ctx = dash.callback_context
         clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
+        if clicked_element == "color-mode" or clicked_element == "opacity-mode":
+            if not lock_graph:
+                fig = get_plot(df_umap, df_pca, mode, opacity)
+                return fig, prev_cluster, prev_chapter, prev_word
+            else:
+                return dash.no_update, prev_cluster, prev_chapter, prev_word
         if clicked_element == "reset-graph":
-            fig = get_plot(df_umap, df_pca)
+            lock_graph = False
+            fig = get_plot(df_umap, df_pca, mode, opacity)
+            prev_word = "None"
+            prev_chapter = ""
+            prev_cluster = ""
             return fig, [], [], "None"
         if isinstance(clickData, dict):
+            lock_graph = True
             fig = make_subplots(rows=1, cols=2,
                     vertical_spacing=0.02,
                     subplot_titles=("Embeddings reduced with tSNE", "Embeddings reduced with PCA"))
@@ -398,10 +440,12 @@ def run_server(fig):
             #print(word_list)
             word_cluster = highlight_umap["cluster"].values[0]
             words_in_cluster = df_umap[df_umap["cluster"] == word_cluster]["labels"]
+            prev_word = text
+            prev_chapter = "\n".join(word_list)
+            prev_cluster = "\n".join(words_in_cluster)
             return fig, "\n".join(words_in_cluster), "\n".join(word_list), text
 
         return dash.no_update, [], [], "None"
-        #return json.dumps(clickData, indent=2)
 
     if __name__ == '__main__':
         app.run_server(debug=True)
