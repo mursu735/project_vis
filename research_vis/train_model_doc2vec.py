@@ -30,7 +30,7 @@ def read_corpus(names, tokens_only=False):
                     else:
                         number = split[1].strip().split(".")[0]
                         chapter = "Chapter " + number
-                    tag = chapter + "/paragraph " + str(i)
+                    tag = chapter + "/paragraph " + str(i+1)
                     yield gensim.models.doc2vec.TaggedDocument(tokens, [tag])
 
 directory_path = "./Chapters/"
@@ -45,20 +45,17 @@ train_corpus = list(read_corpus(text_files))
 
 tags = [file[1][0] for file in train_corpus]
 
-model = gensim.models.doc2vec.Doc2Vec(vector_size=100, min_count=2, epochs=40)
+model = gensim.models.doc2vec.Doc2Vec(vector_size=300, min_count=2, epochs=40)
 
 model.build_vocab(train_corpus)
 
 model.train(train_corpus, total_examples=model.corpus_count, epochs=model.epochs)
 
-'''
-with open("words.txt", "w") as file:
-    for index, word in enumerate(wv.index_to_key):
-        #if index == 10:
-        #    break
-        #print(f"word #{index}/{len(wv.index_to_key)} is {word}")
-        file.write(f"word #{index}/{len(wv.index_to_key)} is {word}\n")
-'''
+
+with open("doc2vec_tags.txt", "w") as file:
+    for tag in tags:
+        file.write(f"{tag}\n")
+
 with tempfile.NamedTemporaryFile(prefix='doc2vec-model-', delete=False) as tmp:
     temporary_filepath = tmp.name
     split = temporary_filepath.split('/')
