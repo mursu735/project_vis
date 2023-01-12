@@ -24,10 +24,12 @@ lock_graph = False
 prev_word = ""
 prev_cluster = ""
 prev_chapter = ""
+descriptive_chapters = [32, 33, 35, 42, 45, 55, 56, 57, 62, 63, 68, 74, 75, 76, 77, 79, 80, 82, 83, 85, 86, 88, 89, 90, 92, 101, 102, 103, 104, 105]
 
 def get_tfidf_chapter(labels):
     result_chapter = []
     result_tfidf = []
+    in_descriptive_chapter = []
     tfidf_df = pd.read_csv("./tf_idf/result_total.csv", sep=",", header=0, usecols=["term", "chapter", "tfidf"])
     max_tfidf = tfidf_df.iloc[0]["tfidf"]
     print(f"Max: {max_tfidf}")
@@ -37,15 +39,22 @@ def get_tfidf_chapter(labels):
         if chapter.empty:
             result_chapter.append(137)
             result_tfidf.append(0.0)
+            in_descriptive_chapter.append(False)
         else:
             result_tfidf.append(chapter["tfidf"].values[0] / max_tfidf)
             chapter = chapter["chapter"].values[0]
             if chapter == "Epilogue":
                 result_chapter.append(136)
+                in_descriptive_chapter.append(0)
             else:
                 split = chapter.split(" ")
-                result_chapter.append(int(split[1]))
-    return result_chapter, result_tfidf
+                number = int(split[1])
+                result_chapter.append(number)
+                if number in descriptive_chapters:
+                    in_descriptive_chapter.append(1)
+                else: 
+                    in_descriptive_chapter.append(0)
+    return result_chapter, result_tfidf, in_descriptive_chapter
 
 def perform_dbscan(data):
     scaler = StandardScaler()
@@ -71,7 +80,9 @@ def reduce_dimensions(wv, word_list):
     labels = np.asarray(lab)  # fixed-width numpy strings
 
     # reduce using t-SNE
-    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=12, min_dist=0.12)
+    # Uncommented is for laptop
+    #red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=12, min_dist=0.12)
+    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=15, min_dist=0.1)
     #red = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
     vectors = red.fit_transform(vectors)
     print("DBSCAN for UMAP:")
@@ -80,7 +91,7 @@ def reduce_dimensions(wv, word_list):
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
     chapter_tuple = get_tfidf_chapter(labels)
-    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapter_tuple[0], "opacity": chapter_tuple[1]}
+    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapter_tuple[0], "opacity": chapter_tuple[1], "descriptive": chapter_tuple[2]}
     df = pd.DataFrame(data=data)
     return df
 
@@ -106,7 +117,7 @@ def reduce_pca(wv, word_list):
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
     chapter_tuple = get_tfidf_chapter(labels)
-    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapter_tuple[0], "opacity": chapter_tuple[1]}
+    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapter_tuple[0], "opacity": chapter_tuple[1], "descriptive": chapter_tuple[2]}
     df = pd.DataFrame(data=data)
     return df
 
@@ -121,6 +132,9 @@ def get_plot(df_umap, df_pca, mode, opacity):
         color_dict["colorscale"] = "Viridis"
     elif mode == "Cluster":
         color_dict["color"] = df_umap["cluster"]
+    elif mode == "Descriptive":
+        print(df_umap["descriptive"])
+        color_dict["color"] = df_umap["descriptive"]
 
     if opacity == "Enable":
         color_dict["opacity"] = df_umap["opacity"]
@@ -322,7 +336,7 @@ def run_server(fig):
         dcc.RadioItems(
             id='color-mode',
             value='discrete',
-            options=['Chapter', 'Cluster'],
+            options=['Chapter', 'Cluster', 'Descriptive'],
         ),
 
         html.P("Set marker opacity based on tf-idf:"),
