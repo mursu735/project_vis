@@ -45,7 +45,7 @@ train_corpus = list(read_corpus(text_files))
 
 tags = [file[1][0] for file in train_corpus]
 
-model = gensim.models.doc2vec.Doc2Vec(vector_size=100, min_count=2, epochs=40)
+model = gensim.models.doc2vec.Doc2Vec(vector_size=100, min_count=10, epochs=40)
 
 model.build_vocab(train_corpus)
 

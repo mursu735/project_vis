@@ -38,7 +38,7 @@ Check messages 5/17 afternoon near 610, might be spillage
 Take a long text, vectorize it, visualize the embeddings, apply umap and PCA, visualize side by side, select word from list, highlight word and show it in both umap and PCA (DONE! (mainly))
 Select cluster of words, print the words in a text box, highlight them in PCA, dbscan over output (done)
 Filter words, use tf-idf
-Color enconding, what chapter is the tf-idf the highest (can be switched by commenting stuff out, adding a switch would make it look better)
+Color enconding, what chapter is the tf-idf the highest (Done)
 Change t-SNE to umap, change dataset from own model to pretrained google 300 vector dataset, but use labels from the trained data (umap done, model can be switched by commenting the line that selects the model)
 Apply NLP techniques like nre to extract important events at a glance
 
@@ -47,3 +47,10 @@ Focus on higher tf-idf (filtering done, threshold can be changed easily)
 Maybe change colorscale between cluster and chapter (can be done manually but would be nice to have it as a radio button)
 Opacity based on how big the tf-idf is (done)
 Use doc2vec with paragraphs (started with this)
+
+Reduce the number of dimensions in doc2vec
+Reduce chapters (maybe leave for later)
+Dynamic query, specify value for tfidf threshold (start with this, maybe precompute with all thresholds, write json, then it's just a matter of lookup)
+Number of occurrences of each characters per chapter and visualize in a stacked chart
+Wordcloud, calculate tfidf on chapter basis, 20 most important words for each chapter
+Finding key events and words
