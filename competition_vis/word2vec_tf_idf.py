@@ -7,23 +7,25 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from pathlib import Path  
 import glob
+import os
 
 def convert_to_date(date):
     split = date.split(" ")
     return split[0].replace("/", "-")
 
-'''
-reader = pd.read_csv('MC_1_Materials_3-30-2011/Microblogs.csv', sep=",", header=0, usecols=["Created_at", "text", "Location"])
+if not os.path.exists("./tf_idf"):
+    os.mkdir("tf_idf")
+    reader = pd.read_csv('MC_1_Materials_3-30-2011/Microblogs.csv', sep=",", header=0, usecols=["Created_at", "text", "Location"])
 
-reader['Created_at'] = reader['Created_at'].apply(convert_to_date)
+    reader['Created_at'] = reader['Created_at'].apply(convert_to_date)
 
-df = reader.groupby("Created_at")['text'].apply(list)
+    df = reader.groupby("Created_at")['text'].apply(list)
 
-for row in df.keys():
-    with open(f"tf_idf/{row}.txt", "w", encoding="utf-8") as file:
-        text = ' '.join(df[row])
-        file.write(text)
-'''
+    for row in df.keys():
+        with open(f"tf_idf/{row}.txt", "w", encoding="utf-8") as file:
+            text = ' '.join(df[row])
+            file.write(text)
+
 
 directory_path = "./tf_idf/"
 text_files = glob.glob(f"{directory_path}/*.txt")
@@ -45,13 +47,20 @@ tfidf_df = tfidf_df.stack().reset_index()
 
 tfidf_df = tfidf_df.rename(columns={0:'tfidf', 'level_0': 'document','level_1': 'term', 'level_2': 'term'})
 
-tfidf_df = tfidf_df.sort_values(by=['document','tfidf'], ascending=[True,False]).groupby(['document']).head(100)
+tfidf_df = tfidf_df[tfidf_df["tfidf"] >= 0.01]
 
-dates = ['5-16-2011', '5-17-2011', '5-18-2011', '5-19-2011']
+top_tfidf_for_each_day = tfidf_df.sort_values(by=['document','tfidf'], ascending=[True,False]).groupby(['document']).head(100)
+
+top_tfidf_for_each_word = tfidf_df.sort_values(by=['term','tfidf'], ascending=[True,False]).drop_duplicates("term")#.groupby(['document'])
+
+print(tfidf_df)
+dates = ['5-16-2011', '5-17-2011', '5-18-2011', '5-19-2011', '5-20-2011']
 print("Writing files")
 for date in dates:
-    terms = tfidf_df[tfidf_df['document'].str.contains(date)]
+    terms = top_tfidf_for_each_day[top_tfidf_for_each_day['document'].str.contains(date)]
     terms.to_csv(f"tf_idf/result_{date}.csv")
+    terms_top = top_tfidf_for_each_word[top_tfidf_for_each_word['document'].str.contains(date)].sort_values(by=['tfidf'], ascending=[False])
+    terms_top.to_csv(f"tf_idf/result_top_tfidf_{date}.csv")
 
 
 #print(tfidf_df)

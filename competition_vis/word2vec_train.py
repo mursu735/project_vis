@@ -58,6 +58,10 @@ with tempfile.NamedTemporaryFile(prefix='gensim-model-', delete=False) as tmp:
     temporary_filepath = tmp.name
     split = temporary_filepath.split('/')
     temporary_filepath = split[-1]
+    # Save in local directory for Windows
+    if len(split) == 1:
+        split = temporary_filepath.split('\\')
+    temporary_filepath = split[-1]
     model.save(temporary_filepath)
     with open("model_name.txt", "w") as file:
         file.write(temporary_filepath)

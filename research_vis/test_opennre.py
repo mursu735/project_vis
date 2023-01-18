@@ -1,6 +1,7 @@
 import helpers
 #import gensim.models
-import opennre
+#import opennre
+import pandas as pd
 '''
 model_name = helpers.fetch_doc2vec_model_name()
 
@@ -16,11 +17,11 @@ with open("doc2vec_tags.txt") as file:
     tags = [line.replace('\n','') for line in file.readlines()]
 
 print(tags)'''
-
+'''
 model = opennre.get_model('wiki80_bert_softmax')
-text = "Next was Tashtego, an unmixed Indian from Gay Head, the most westerly promontory of Martha’s Vineyard, where there still exists the last remnant of a village of red men, which has long supplied the neighboring island of Nantucket with many of her most daring harpooneers. In the fishery, they usually go by the generic name of Gay-Headers. Tashtego’s long, lean, sable hair, his high cheek bones, and black rounding eyes—for an Indian, Oriental in their largeness, but Antarctic in their glittering expression—all this sufficiently proclaimed him an inheritor of the unvitiated blood of those proud warrior hunters, who, in quest of the great New England moose, had scoured, bow in hand, the aboriginal forests of the main. But no longer snuffing in the trail of the wild beasts of the woodland, Tashtego now hunted in the wake of the great whales of the sea; the unerring harpoon of the son fitly replacing the infallible arrow of the sires. To look at the tawny brawn of his lithe snaky limbs, you would almost have credited the superstitions of some of the earlier Puritans, and half-believed this wild Indian to be a son of the Prince of the Powers of the Air. Tashtego was Stubb the second mate’s squire."
-target1 = "Tashtego"
-target2 = "Stubb"
+text = "But I had not proceeded far, when I began to bethink me that the Captain with whom I was to sail yet remained unseen by me; though, indeed, in many cases, a whale-ship will be completely fitted out, and receive all her crew on board, ere the captain makes himself visible by arriving to take command; for sometimes these voyages are so prolonged, and the shore intervals at home so exceedingly brief, that if the captain have a family, or any absorbing concernment of that sort, he does not trouble himself much about his ship in port, but leaves her to the owners till all is ready for sea. However, it is always as well to have a look at him before irrevocably committing yourself into his hands. Turning back I accosted Captain Peleg, inquiring where Captain Ahab was to be found. "
+target2 = "Ahab"
+target1 = "Peleg"
 
 
 start_h = text.index(target1)
@@ -36,3 +37,6 @@ print(start_t, end_t)
 asd = model.infer({'text': text, 
     'h': {'pos': (start_h, end_h)}, 't': {'pos': (start_t, end_t)}})
 print(asd)
+'''
+asd = pd.read_json("test.json", convert_dates=False)
+print(asd.keys())

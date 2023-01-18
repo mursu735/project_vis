@@ -65,7 +65,7 @@ def perform_dbscan(data):
     print(len(labels))
     return labels
 
-def reduce_dimensions(wv, word_list):
+def reduce_dimensions(wv, word_list, n_neighbors, min_dist):
     num_dimensions = 2  # final num dimensions (2D, 3D, etc)
 
     # extract the words & their vectors, as numpy arrays
@@ -82,7 +82,7 @@ def reduce_dimensions(wv, word_list):
     # reduce using t-SNE
     # Uncommented is for laptop
     #red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=12, min_dist=0.12)
-    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=15, min_dist=0.1)
+    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=n_neighbors, min_dist=min_dist)
     #red = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
     vectors = red.fit_transform(vectors)
     print("DBSCAN for UMAP:")
@@ -201,7 +201,7 @@ print(len(labels))
 
 start_time = time.time()
 
-df_umap = reduce_dimensions(wv, labels)
+df_umap = reduce_dimensions(wv, labels, 15, 0.1)
 
 print(f"Time taken to create UMAP mapping: {time.time() - start_time}")
 start_time = time.time()
@@ -320,6 +320,8 @@ def run_server(fig):
     global prev_chapter
     global prev_cluster
     global prev_word
+    global df_umap
+    global df_pca
     lock_graph = False
     prev_word = ""
     prev_cluster = ""
@@ -345,6 +347,16 @@ def run_server(fig):
             value='discrete',
             options=["Enable", "Disable"],
         ),
+
+        html.Div([
+            "Threshold: ",
+            dcc.Input(id='threshold', value=0.05, type='number', min=0.01, max=0.89, step=0.01),
+            "n_neighbors: ",
+            dcc.Input(id='n_neighbors', value=15, type='number'),
+            "min_dist: ",
+            dcc.Input(id='min_dist', value=0.1, type='number', min=0.01, max=1.0, step=0.01),
+            html.Button('Recalculate graph', n_clicks=0, id='calculate-graph'),
+        ]),
 
         dcc.Graph(
             id='example-graph',
@@ -382,14 +394,22 @@ def run_server(fig):
         Input('example-graph', 'clickData'),
         Input('reset-graph', 'n_clicks'),
         Input("color-mode", "value"),
-        Input("opacity-mode", "value"),)
-    def display_click_data(clickData, n_clicks, mode, opacity):
+        Input("opacity-mode", "value"),
+        Input('calculate-graph', 'n_clicks'),
+        Input("threshold", "value"),
+        Input("n_neighbors", "value"),
+        Input("min_dist", "value"),)
+    def display_click_data(clickData, n_clicks, mode, opacity, recalc, threshold, n_neighbors, min_dist):
         global lock_graph
         global prev_chapter
         global prev_cluster
         global prev_word
+        global df_umap
+        global df_pca
         ctx = dash.callback_context
         clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
+        if clicked_element == "threshold" or clicked_element == "n_neighbors" or clicked_element == min_dist:
+            dash.no_update, prev_cluster, prev_chapter, prev_word
         if clicked_element == "color-mode" or clicked_element == "opacity-mode":
             if not lock_graph:
                 fig = get_plot(df_umap, df_pca, mode, opacity)
@@ -402,6 +422,16 @@ def run_server(fig):
             prev_word = "None"
             prev_chapter = ""
             prev_cluster = ""
+            return fig, [], [], "None"
+        if clicked_element == "calculate-graph":
+            labels = filtered[filtered["tfidf"] >= threshold]["term"].values
+            start_time = time.time()
+            df_umap = reduce_dimensions(wv, labels, n_neighbors, min_dist)
+            print(f"Time taken to create UMAP mapping: {time.time() - start_time}")
+            start_time = time.time()
+            df_pca = reduce_pca(wv, labels)
+            print(f"Time taken to create PCA mapping: {time.time() - start_time}")
+            fig = get_plot(df_umap, df_pca, mode, opacity)
             return fig, [], [], "None"
         if isinstance(clickData, dict):
             lock_graph = True
