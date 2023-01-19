@@ -54,3 +54,5 @@ Dynamic query, specify value for tfidf threshold (start with this, maybe precomp
 Number of occurrences of each characters per chapter and visualize in a stacked chart
 Wordcloud, calculate tfidf on chapter basis, 20 most important words for each chapter
 Finding key events and words
+Selection tool for word2vec vis (select an area and show words in that area)
+Add radio button for selecting cluster or chapter color for doc2vec vis

@@ -19,6 +19,7 @@ from umap import UMAP
 import numpy as np
 import pandas as pd
 import time
+import re
 
 def perform_dbscan(data):
     scaler = StandardScaler()
@@ -29,9 +30,22 @@ def perform_dbscan(data):
     print(len(labels))
     return labels
 
-def reduce_dimensions(dv, tag_list):
-    num_dimensions = 2  # final num dimensions (2D, 3D, etc)
+def natural_sort(l):
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)
 
+def get_subplot_template():
+    return make_subplots(
+        rows=1,
+        cols=2,
+        vertical_spacing=0.02,
+        specs=[[{'type': 'surface'}, {'type': 'xy'}]],
+        subplot_titles=("Embeddings reduced with UMAP", "Embeddings reduced with PCA"))
+
+def reduce_dimensions(dv, tag_list):
+    num_dimensions = 3  # final num dimensions (2D, 3D, etc)
+    print(tag_list)
     # extract the words & their vectors, as numpy arrays
     vec = []
     lab = []
@@ -55,13 +69,14 @@ def reduce_dimensions(dv, tag_list):
     # reduce using t-SNE
     red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=15, min_dist=0.15)
     #red = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
+    dbscan = perform_dbscan(vectors)
     vectors = red.fit_transform(vectors)
     print("DBSCAN for UMAP:")
-    dbscan = perform_dbscan(vectors)
 
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
-    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapter}
+    z_vals = [v[2] for v in vectors]
+    data = {"x": x_vals, "y": y_vals, "z": z_vals, "labels": labels, "cluster": dbscan, "chapter": chapter}
     df = pd.DataFrame(data=data)
     return df
 
@@ -91,14 +106,13 @@ def reduce_pca(dv, tag_list):
     return df
 
 def get_plot(df_umap, df_pca):
-    fig = make_subplots(rows=1, cols=2,
-                    vertical_spacing=0.02,
-                    subplot_titles=("Embeddings reduced with tSNE", "Embeddings reduced with PCA"))
+    fig = get_subplot_template()
 
-    trace1 = go.Scattergl(
+    trace1 = go.Scatter3d(
         x=df_umap["x"],
         y=df_umap["y"],
-        mode="markers",
+        z=df_umap["z"],
+        mode="lines+markers",
         text=df_umap["labels"],
         marker=dict(
             color=df_umap["chapter"],
@@ -144,7 +158,7 @@ tags = []
 with open("doc2vec_tags.txt") as file:
     tags = [line.replace('\n','') for line in file.readlines()]
 
-
+tags = natural_sort(tags)
 #wv = api.load('word2vec-google-news-300')
 
 #colorscale = get_tfidf_chapter(labels)
@@ -171,8 +185,8 @@ print(f"Time taken to create PCA mapping: {time.time() - start_time}")
 #print(len(x_vals))
 fig = get_plot(df_umap, df_pca)
 
-circles_pca = {}
-circles = {}
+#circles_pca = {}
+#circles = {}
 
 start_time = time.time()
 length = len(df_umap)
@@ -188,15 +202,17 @@ for i in range(0, length):
     '''
     label_umap = umap_cur["labels"]
     label_pca = pca_cur["labels"]
+    '''
     if label_umap not in circles:
         circles[label_umap] = []
     if label_pca not in circles:
         circles[label_pca] = []
-
+    '''
     x_umap = umap_cur["x"]
     y_umap = umap_cur["y"]
     x_pca = pca_cur["x"]
     y_pca = pca_cur["y"]
+'''
     circles[label_umap].append(dict(
         type="circle",
         xref="x1", yref="y1",
@@ -209,7 +225,7 @@ for i in range(0, length):
         x0=x_pca - 0.15, y0=y_pca - 0.15,
         x1=x_pca + 0.15, y1=y_pca + 0.15,
         line=dict(color="DarkOrange")))
-
+'''
 print(f"Time taken to calculate circles: {time.time() - start_time}")
 start_time = time.time()
 
@@ -276,16 +292,14 @@ def run_server(fig):
             return fig, [], [], "None"
         # Clicked on the graph
         if isinstance(clickData, dict):
-            fig = make_subplots(rows=1, cols=2,
-                    vertical_spacing=0.02,
-                    subplot_titles=("Embeddings reduced with tSNE", "Embeddings reduced with PCA"))
+            fig = get_subplot_template()
             text = clickData["points"][0]["text"]
             highlight_umap = df_umap.loc[df_umap['labels'] == text]
             highlight_pca = df_pca.loc[df_pca['labels'] == text]
-            trace1 = go.Scattergl(x=df_umap["x"], y=df_umap["y"], mode="markers", text=df_umap["labels"], marker=dict(color="black"), name="words")
-            trace1_hl = go.Scattergl(x=highlight_umap["x"], y=highlight_umap["y"], mode="markers", text=highlight_umap["labels"], marker=dict(color="red"), name="Highlighted word")
-            trace2 = go.Scattergl(x=df_pca["x"], y=df_pca["y"], mode="markers", text=df_pca["labels"], marker=dict(color="black"), name="words")
-            trace2_hl = go.Scattergl(x=highlight_pca["x"], y=highlight_pca["y"], mode="markers", text=highlight_pca["labels"], marker=dict(color="red"), name="Highlighted word")
+            trace1 = go.Scatter3d(x=df_umap["x"], y=df_umap["y"], z=df_umap["z"], mode="lines+markers", text=df_umap["labels"], marker=dict(color=df_umap["chapter"], colorbar=dict(title="Colorbar"), colorscale="Viridis",), name="chapter")
+            trace1_hl = go.Scatter3d(x=highlight_umap["x"], y=highlight_umap["y"], z=highlight_umap["z"], mode="markers", text=highlight_umap["labels"], marker=dict(color="red"), name="Highlighted chapter")
+            trace2 = go.Scattergl(x=df_pca["x"], y=df_pca["y"], mode="markers", text=df_pca["labels"], marker=dict(color="black"), name="chapter")
+            trace2_hl = go.Scattergl(x=highlight_pca["x"], y=highlight_pca["y"], mode="markers", text=highlight_pca["labels"], marker=dict(color="red"), name="Highlighted chapter")
 
             fig.append_trace(trace1,1,1)
             fig.append_trace(trace1_hl,1,1)
@@ -293,9 +307,14 @@ def run_server(fig):
             fig.append_trace(trace2_hl,1,2)
             # get marker color and circle
             #fig.update_traces(marker=dict(color=updated))
-            for shape in circles[text]:
-                fig.add_shape(shape)
-            
+            '''
+            fig.add_shape(dict(
+                type="circle",
+                xref="x2", yref="y2",
+                x0=highlight_pca["x"] - 0.15, y0=highlight_pca["y"] - 0.15,
+                x1=highlight_pca["x"] + 0.15, y1=highlight_pca["y"] + 0.15,
+                line=dict(color="DarkOrange")))
+            '''
             chapter = df_umap[df_umap["labels"] == text]["chapter"].values[0]
             #print(chapter)
             word_list = df_umap[df_umap["chapter"] == chapter]["labels"]

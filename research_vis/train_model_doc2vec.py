@@ -17,22 +17,20 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 def read_corpus(names, tokens_only=False):
     for file in names:
         with open(file, encoding="utf-8") as f:
-            for i, line in enumerate(f):
-                tokens = gensim.utils.simple_preprocess(line)
-                if tokens_only:
-                    yield tokens
+            text = f.read()
+            tokens = gensim.utils.simple_preprocess(text)
+            if tokens_only:
+                yield tokens
+            else:
+                # For training data, add tags
+                split = file.split("CHAPTER")
+                tag = ""
+                if len(split) == 1:
+                    tag = "Epilogue"
                 else:
-                    # For training data, add tags
-                    split = file.split("CHAPTER")
-                    chapter = ""
-                    if len(split) == 1:
-                        chapter = "Epilogue"
-                    else:
-                        number = split[1].strip().split(".")[0]
-                        chapter = "Chapter " + number
-                    tag = chapter + "/paragraph " + str(i+1)
-                    yield gensim.models.doc2vec.TaggedDocument(tokens, [tag])
-
+                    number = split[1].strip().split(".")[0]
+                    tag = "Chapter " + number
+                yield gensim.models.doc2vec.TaggedDocument(tokens, [tag])
 directory_path = "./Chapters/"
 if not os.path.exists(directory_path):
     print("Chapters do not exists, unable to train model")
@@ -45,7 +43,7 @@ train_corpus = list(read_corpus(text_files))
 
 tags = [file[1][0] for file in train_corpus]
 
-model = gensim.models.doc2vec.Doc2Vec(vector_size=100, min_count=10, epochs=40)
+model = gensim.models.doc2vec.Doc2Vec(vector_size=50, min_count=10, epochs=40)
 
 model.build_vocab(train_corpus)
 

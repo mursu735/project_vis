@@ -124,7 +124,7 @@ def reduce_pca(wv, word_list):
 def get_plot(df_umap, df_pca, mode, opacity):
     fig = make_subplots(rows=1, cols=2,
                     vertical_spacing=0.02,
-                    subplot_titles=("Embeddings reduced with tSNE", "Embeddings reduced with PCA"))
+                    subplot_titles=("Embeddings reduced with UMAP", "Embeddings reduced with PCA"))
     color_dict = {}
     if mode == "Chapter":
         color_dict["color"] = df_umap["chapter"]
@@ -322,6 +322,7 @@ def run_server(fig):
     global prev_word
     global df_umap
     global df_pca
+    global labels
     lock_graph = False
     prev_word = ""
     prev_cluster = ""
@@ -406,6 +407,7 @@ def run_server(fig):
         global prev_word
         global df_umap
         global df_pca
+        global labels
         ctx = dash.callback_context
         clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
         if clicked_element == "threshold" or clicked_element == "n_neighbors" or clicked_element == min_dist:
@@ -437,7 +439,7 @@ def run_server(fig):
             lock_graph = True
             fig = make_subplots(rows=1, cols=2,
                     vertical_spacing=0.02,
-                    subplot_titles=("Embeddings reduced with tSNE", "Embeddings reduced with PCA"))
+                    subplot_titles=("Embeddings reduced with UMAP", "Embeddings reduced with PCA"))
             text = clickData["points"][0]["text"]
             highlight_umap = df_umap.loc[df_umap['labels'] == text]
             highlight_pca = df_pca.loc[df_pca['labels'] == text]
