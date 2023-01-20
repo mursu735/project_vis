@@ -113,7 +113,7 @@ for time in range(0, len(unique_times_sorted), time_window):
         s2_sum += coords_map[cur]["Symptom 2"]
         other_sum += coords_map[cur]["Other symptoms"]
         total += counts_by_time[cur]
-    # This addition has no other use other than emphasizing that
+    # This addition has no other use other than emphasizing that the messages occur between that time slot
     end_time = cur + timedelta(minutes=59)
     key = f"{start_time}-{end_time}"
     keys.append(key)

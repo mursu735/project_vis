@@ -4,6 +4,7 @@ import glob
 import gensim.models
 import gensim.downloader as api
 import plotly.graph_objects as go
+import plotly.express as px
 import dash
 from dash import Dash, html, dcc
 import dash_bootstrap_components as dbc
@@ -15,7 +16,9 @@ from sklearn.manifold import TSNE                   # final reduction
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import DBSCAN
+from wordcloud import WordCloud
 from umap import UMAP
+from PIL import Image
 import numpy as np
 import pandas as pd
 import time
@@ -42,6 +45,37 @@ def get_subplot_template():
         vertical_spacing=0.02,
         specs=[[{'type': 'surface'}, {'type': 'xy'}]],
         subplot_titles=("Embeddings reduced with UMAP", "Embeddings reduced with PCA"))
+
+def get_wordcloud(chapter):
+    print(chapter)
+    #tfidf = pd.read_csv("./tf_idf/result_CHAPTER 1.csv", sep=",", header=0, usecols=["term", "tfidf"]).set_index("term").to_dict()
+    #wordcloud = WordCloud(background_color="white", width=1200, height=900).generate_from_frequencies(tfidf["tfidf"])
+    #return px.imshow(wordcloud)
+
+def get_base_wordcloud_fig():
+    wordcloud_fig = go.Figure()
+    wordcloud_fig.add_trace(go.Scatter(
+        x=[0],
+        y=[0],
+        mode="markers",
+        marker=dict(opacity=0)))
+    im = Image.open("banner.png") # Can be many different formats.
+    wordcloud_fig.add_layout_image(
+            dict(
+                source=im,
+                xref="x",
+                yref="y",
+                x=0,
+                y=1,
+                sizex=1,
+                sizey=1,
+                sizing="fill",
+                layer="above")
+    )
+
+    wordcloud_fig.update_xaxes(range=[0, 1], visible=False, showticklabels=False)
+    wordcloud_fig.update_yaxes(range=[0, 1], visible=False, showticklabels=False)
+    return wordcloud_fig
 
 def reduce_dimensions(dv, tag_list):
     num_dimensions = 3  # final num dimensions (2D, 3D, etc)
@@ -139,6 +173,7 @@ def get_plot(df_umap, df_pca):
 
     fig.append_trace(trace1,1,1)
     fig.append_trace(trace2,1,2)
+    fig.update_layout(uirevision='constant')
     return fig
 
 
@@ -202,12 +237,7 @@ for i in range(0, length):
     '''
     label_umap = umap_cur["labels"]
     label_pca = pca_cur["labels"]
-    '''
-    if label_umap not in circles:
-        circles[label_umap] = []
-    if label_pca not in circles:
-        circles[label_pca] = []
-    '''
+
     x_umap = umap_cur["x"]
     y_umap = umap_cur["y"]
     x_pca = pca_cur["x"]
@@ -240,6 +270,7 @@ print(f"Time taken to create graph: {time.time() - start_time}")
 start_time = time.time()
 
 def run_server(fig):
+    wordcloud_fig = get_base_wordcloud_fig()
     app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
     app.layout = html.Div(children=[
         html.H1(children='Hello Dash'),
@@ -255,7 +286,12 @@ def run_server(fig):
 
         html.Button('Reset graph', n_clicks=0, id='reset-graph'),
 
-        html.Div(children=["Selected word", html.Pre(id='selected-word')]),
+        html.Div(children=["Selected chapter", html.Pre(id='selected-word')]),
+
+        dcc.Graph(
+            id='wordcloud-graph',
+            figure=wordcloud_fig
+        ),
 
         dbc.Row(
             [
@@ -278,6 +314,7 @@ def run_server(fig):
     
     @app.callback(
         Output('example-graph', 'figure'),
+        #Output('wordcloud-graph', 'figure'),
         Output('click-data', 'children'),
         Output('cluster-data', 'children'),
         Output('selected-word', 'children'),
@@ -288,40 +325,49 @@ def run_server(fig):
         clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
         # Clicked on reset button
         if clicked_element == "reset-graph":
+            #reset_camera = not reset_camera
             fig = get_plot(df_umap, df_pca)
             return fig, [], [], "None"
         # Clicked on the graph
         if isinstance(clickData, dict):
             fig = get_subplot_template()
             text = clickData["points"][0]["text"]
-            highlight_umap = df_umap.loc[df_umap['labels'] == text]
-            highlight_pca = df_pca.loc[df_pca['labels'] == text]
-            trace1 = go.Scatter3d(x=df_umap["x"], y=df_umap["y"], z=df_umap["z"], mode="lines+markers", text=df_umap["labels"], marker=dict(color=df_umap["chapter"], colorbar=dict(title="Colorbar"), colorscale="Viridis",), name="chapter")
-            trace1_hl = go.Scatter3d(x=highlight_umap["x"], y=highlight_umap["y"], z=highlight_umap["z"], mode="markers", text=highlight_umap["labels"], marker=dict(color="red"), name="Highlighted chapter")
-            trace2 = go.Scattergl(x=df_pca["x"], y=df_pca["y"], mode="markers", text=df_pca["labels"], marker=dict(color="black"), name="chapter")
-            trace2_hl = go.Scattergl(x=highlight_pca["x"], y=highlight_pca["y"], mode="markers", text=highlight_pca["labels"], marker=dict(color="red"), name="Highlighted chapter")
-
-            fig.append_trace(trace1,1,1)
-            fig.append_trace(trace1_hl,1,1)
-            fig.append_trace(trace2,1,2)
-            fig.append_trace(trace2_hl,1,2)
-            # get marker color and circle
-            #fig.update_traces(marker=dict(color=updated))
-            '''
-            fig.add_shape(dict(
-                type="circle",
-                xref="x2", yref="y2",
-                x0=highlight_pca["x"] - 0.15, y0=highlight_pca["y"] - 0.15,
-                x1=highlight_pca["x"] + 0.15, y1=highlight_pca["y"] + 0.15,
-                line=dict(color="DarkOrange")))
-            '''
-            chapter = df_umap[df_umap["labels"] == text]["chapter"].values[0]
-            #print(chapter)
-            word_list = df_umap[df_umap["chapter"] == chapter]["labels"]
-            #print(word_list)
-            word_cluster = highlight_umap["cluster"].values[0]
-            words_in_cluster = df_umap[df_umap["cluster"] == word_cluster]["labels"]
-            return fig, "\n".join(words_in_cluster), "\n".join(word_list), text
+            if not text == "None":
+                highlight_umap = df_umap.loc[df_umap['labels'] == text]
+                highlight_pca = df_pca.loc[df_pca['labels'] == text]
+                trace1 = go.Scatter3d(x=df_umap["x"], y=df_umap["y"], z=df_umap["z"], mode="lines+markers", text=df_umap["labels"], marker=dict(color=df_umap["chapter"], colorbar=dict(title="Colorbar"), colorscale="Viridis",), name="chapter")
+                trace1_hl = go.Scatter3d(x=highlight_umap["x"], y=highlight_umap["y"], z=highlight_umap["z"], mode="markers", text=highlight_umap["labels"], marker=dict(color="red", size=10), name="Highlighted chapter")
+                trace2 = go.Scattergl(x=df_pca["x"], y=df_pca["y"], mode="markers", text=df_pca["labels"], marker=dict(color="black"), name="chapter")
+                trace2_hl = go.Scattergl(x=highlight_pca["x"], y=highlight_pca["y"], mode="markers", text=highlight_pca["labels"], marker=dict(color="red"), name="Highlighted chapter")
+                start_time = time.time()
+                print(get_wordcloud(text))
+                print(f"Time taken to calculate word cloud: {time.time() - start_time}")
+                fig.append_trace(trace1,1,1)
+                fig.append_trace(trace1_hl,1,1)
+                fig.append_trace(trace2,1,2)
+                fig.append_trace(trace2_hl,1,2)
+                fig.update_layout(uirevision='constant')
+                #if "scene.camera" in camera_data:
+                #    print(str(camera_data))
+                #    camera = dict(up=camera_data["scene.camera"]["up"], center=camera_data["scene.camera"]["center"], eye=camera_data["scene.camera"]["eye"])
+                #    fig.update_layout(scene_camera=camera)
+                # get marker color and circle
+                #fig.update_traces(marker=dict(color=updated))
+                '''
+                fig.add_shape(dict(
+                    type="circle",
+                    xref="x2", yref="y2",
+                    x0=highlight_pca["x"] - 0.15, y0=highlight_pca["y"] - 0.15,
+                    x1=highlight_pca["x"] + 0.15, y1=highlight_pca["y"] + 0.15,
+                    line=dict(color="DarkOrange")))
+                '''
+                chapter = df_umap[df_umap["labels"] == text]["chapter"].values[0]
+                #print(chapter)
+                word_list = df_umap[df_umap["chapter"] == chapter]["labels"]
+                #print(word_list)
+                word_cluster = highlight_umap["cluster"].values[0]
+                words_in_cluster = df_umap[df_umap["cluster"] == word_cluster]["labels"]
+                return fig, "\n".join(words_in_cluster), "\n".join(word_list), text
 
         return dash.no_update, [], [], "None"
         #return json.dumps(clickData, indent=2)

@@ -2,6 +2,11 @@ import helpers
 #import gensim.models
 #import opennre
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from wordcloud import WordCloud
+from PIL import Image
+
 '''
 model_name = helpers.fetch_doc2vec_model_name()
 
@@ -38,5 +43,42 @@ asd = model.infer({'text': text,
     'h': {'pos': (start_h, end_h)}, 't': {'pos': (start_t, end_t)}})
 print(asd)
 '''
-asd = pd.read_json("test.json", convert_dates=False)
-print(asd.keys())
+#asd = pd.read_json("test.json", convert_dates=False)
+#print(asd.keys())
+
+asd = pd.read_csv("./tf_idf/result_CHAPTER 1.csv", sep=",", header=0, usecols=["term", "tfidf"]).set_index("term").to_dict()
+
+#print(asd["tfidf"])
+
+#wordcloud = WordCloud(background_color="white", width=1200, height=900).generate_from_frequencies(asd["tfidf"])
+im = Image.open("banner.png") # Can be many different formats.
+pix = im.load()
+
+#fig = px.imshow(pix) # image show
+fig = go.Figure()
+fig.add_trace(go.Scatter(
+    x=[0],
+    y=[0],
+    mode="markers",
+    marker=dict(opacity=0)))
+
+fig.add_layout_image(
+        dict(
+            source=im,
+            xref="x",
+            yref="y",
+            x=0,
+            y=1,
+            sizex=1,
+            sizey=1,
+            sizing="fill",
+            layer="above")
+)
+
+fig.update_xaxes(range=[0, 1], visible=False, showticklabels=False)
+fig.update_yaxes(range=[0, 1], visible=False, showticklabels=False)
+fig.update_layout()
+
+fig.show()
+
+
