@@ -199,7 +199,12 @@ fig.add_trace(go.Bar(
 ))
 
 fig.update_layout(
-    title="Number of sickness-related messages by each hour"
+    title={
+        'text': "Number of sickness-related messages by each hour",
+        'y':0.9,
+        'x':0.94,
+        'xanchor': 'right',
+        'yanchor': 'top'}
 )
 
 fig.show()

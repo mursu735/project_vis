@@ -20,11 +20,13 @@ print(model_name)
 
 new_model = gensim.models.Word2Vec.load(model_name)
 wv = new_model.wv
-word = "bomb"
+word = "fever"
 
 words = wv.most_similar(positive=[f"{word}"], topn=100)
 
-print(words)
+words = [(number[0], round(number[1], 2)) for number in words]
+
+print((words))
 
 #wv = api.load('glove-twitter-100')
 
@@ -70,13 +72,12 @@ with open("similar_words/similar_words.txt", "w") as file:
         count += 1
 '''
 #wv.evaluate_word_pairs('MC_1_Materials_3-30-2011/Microblogs.csv')
-'''
-words = wv.most_similar(positive=[f"{word}"], topn=100)
+
+#words = wv.most_similar(positive=[f"{word}"], topn=100)
 
 with open(f"similar_own_model_{word}.txt", "w") as f:
     for asd in words:
-        print(asd)
-        #f.write(f"{asd}\n")
-'''
+        #print(asd)
+        f.write(f"{asd}\n")
 # sick -> fever
 # fever -> headache, pneumonia, sweats, fatigue, flu, chills, heartburn, nausea, cramps, cold, cough, aching, breath, diarrhea, insomnia, unwell, vomitting

@@ -180,7 +180,7 @@ for i in range(len(keys)):
     steps.append(step)
 
 sliders = [dict(
-    pad={"t": 50},
+    pad={"t": 60},
     steps=steps
 )]
 
@@ -240,6 +240,26 @@ fig.update_layout(
     title=f"Percentage of relevant messages by area as an average over {time_window} hours",
     yaxis_title="Percentage of sickness-related messages"
 )
+
+fig.update_layout(
+    legend=dict(
+        x=0.5,
+        y=0.95,
+        traceorder="normal",
+        font=dict(
+            family="sans-serif",
+            size=12,
+            color="black"
+        ),
+    )
+)
+
+fig.update_layout(
+    title={
+        'x':0.1,
+        'xanchor': 'left'}
+)
+
 
 
 '''yranges = {}

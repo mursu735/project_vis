@@ -31,7 +31,7 @@ def perform_dbscan(data):
     scaler = StandardScaler()
     scaler = scaler.fit(data)
     scaled_p = scaler.transform(data)
-    clustering = DBSCAN(eps=5, min_samples=5).fit(scaled_p)
+    clustering = DBSCAN(eps=0.5, min_samples=5).fit(scaled_p)
     labels = clustering.labels_
     print(len(labels))
     return labels
@@ -55,7 +55,7 @@ def get_wordcloud(chapter):
     if len(number) > 1:
         res = f"CHAPTER {number[1]}"
     tfidf = pd.read_csv(f"./tf_idf/result_{res}.csv", sep=",", header=0, usecols=["term", "tfidf"]).set_index("term").to_dict()
-    wordcloud = WordCloud(background_color="white", width=1200, height=900).generate_from_frequencies(tfidf["tfidf"])
+    wordcloud = WordCloud(background_color="white", width=1200, height=900, max_words=20).generate_from_frequencies(tfidf["tfidf"])
     fig = px.imshow(wordcloud)
     fig.update_layout(title=f"Word cloud for {chapter}", title_x=0.5)
     fig.update_xaxes(visible=False, showticklabels=False)
@@ -120,8 +120,8 @@ def reduce_dimensions(dv, tag_list):
     #red = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
     dbscan = perform_dbscan(vectors)
     vectors = red.fit_transform(vectors)
-    print("DBSCAN for UMAP:")
-
+    #print("DBSCAN for UMAP:")
+    #dbscan = perform_dbscan(vectors)
     x_vals = [v[0] for v in vectors]
     y_vals = [v[1] for v in vectors]
     z_vals = [v[2] for v in vectors]
@@ -311,7 +311,7 @@ def run_server(fig):
         html.P("Color mode:"),
         dcc.RadioItems(
             id='color-mode',
-            value='discrete',
+            value='Chapter',
             options=['Chapter', 'Cluster', 'Descriptive'],
         ),
 
