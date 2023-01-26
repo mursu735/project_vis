@@ -46,7 +46,7 @@ def get_subplot_template():
         rows=1,
         cols=2,
         vertical_spacing=0.02,
-        specs=[[{'type': 'surface'}, {'type': 'xy'}]],
+        specs=[[{'type': 'xy'}, {'type': 'xy'}]],
         subplot_titles=("Chapter embeddings reduced with UMAP", "Chapter embeddings reduced with PCA"))
 
 def get_wordcloud(chapter):
@@ -89,7 +89,7 @@ def get_base_wordcloud_fig():
     return wordcloud_fig
 
 def reduce_dimensions(dv, tag_list):
-    num_dimensions = 2  # final num dimensions (2D, 3D, etc)
+    num_dimensions = 1  # final num dimensions (2D, 3D, etc)
     print(tag_list)
     # extract the words & their vectors, as numpy arrays
     vec = []
@@ -103,31 +103,31 @@ def reduce_dimensions(dv, tag_list):
             number = 136
         else:
             number = int(split2[1])
-        if number not in descriptive_chapters:
-            asd = dv.get_vector(tag)
-            vec.append(asd)
-            lab.append(tag)
-            if number in descriptive_chapters:
-                descriptive.append(1)
-            else:
-                descriptive.append(0)
-            chapter.append(number)
+        #if number not in descriptive_chapters:
+        asd = dv.get_vector(tag)
+        vec.append(asd)
+        lab.append(tag)
+        if number in descriptive_chapters:
+            descriptive.append(1)
+        else:
+            descriptive.append(0)
+        chapter.append(number)
 
     vectors = np.asarray(vec)
     labels = np.asarray(lab)  # fixed-width numpy strings
 
     # reduce using t-SNE
-    red = UMAP(output_metric='haversine', n_components=num_dimensions, random_state=0, init='random', n_neighbors=15, min_dist=0.15)
+    red = UMAP(n_components=num_dimensions, random_state=0, init='random', n_neighbors=15, min_dist=0.15)
     #red = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
     dbscan = perform_dbscan(vectors)
-    vectors = red.fit(vectors) #red.fit_transform(vectors)
+    vectors = red.fit_transform(vectors)
     #print("DBSCAN for UMAP:")
     #dbscan = perform_dbscan(vectors)
     print(vectors)
-    x_vals = np.sin(vectors.embedding_[:, 0]) * np.cos(vectors.embedding_[:, 1]) #[v[0] for v in vectors]
-    y_vals = np.sin(vectors.embedding_[:, 0]) * np.sin(vectors.embedding_[:, 1]) #[v[1] for v in vectors]
-    z_vals = np.cos(vectors.embedding_[:, 0]) #[v[2] for v in vectors]
-    data = {"x": x_vals, "y": y_vals, "z": z_vals, "labels": labels, "cluster": dbscan, "chapter": chapter, "descriptive": descriptive}
+    x_vals = labels
+    y_vals = [v[0] for v in vectors]
+    #z_vals = np.cos(vectors.embedding_[:, 0]) #[v[2] for v in vectors]
+    data = {"x": x_vals, "y": y_vals, "labels": labels, "cluster": dbscan, "chapter": chapter, "descriptive": descriptive}
     df = pd.DataFrame(data=data)
     return df
 
@@ -171,10 +171,9 @@ def get_color_dict(mode):
 def get_plot(df_umap, df_pca, mode):
     fig = get_subplot_template()
     color_dict = get_color_dict(mode)
-    trace1 = go.Scatter3d(
+    trace1 = go.Scattergl(
         x=df_umap["x"],
         y=df_umap["y"],
-        z=df_umap["z"],
         mode="lines+markers",
         text=df_umap["labels"],
         marker=color_dict,
@@ -190,7 +189,7 @@ def get_plot(df_umap, df_pca, mode):
 
     fig.append_trace(trace1,1,1)
     fig.append_trace(trace2,1,2)
-    fig.update_layout(uirevision='constant')
+    fig.update_layout(uirevision='constant', autosize=True)
     return fig
 
 def get_highlight_plot(mode, text):
@@ -198,15 +197,15 @@ def get_highlight_plot(mode, text):
     highlight_umap = df_umap.loc[df_umap['labels'] == text]
     highlight_pca = df_pca.loc[df_pca['labels'] == text]
     color_dict = get_color_dict(mode)
-    trace1 = go.Scatter3d(x=df_umap["x"], y=df_umap["y"], z=df_umap["z"], mode="lines+markers", text=df_umap["labels"], marker=color_dict, name="chapter")
-    trace1_hl = go.Scatter3d(x=highlight_umap["x"], y=highlight_umap["y"], z=highlight_umap["z"], mode="markers", text=highlight_umap["labels"], marker=dict(color="red", size=10), name="Highlighted chapter")
+    trace1 = go.Scattergl(x=df_umap["x"], y=df_umap["y"], mode="lines+markers", text=df_umap["labels"], marker=color_dict, name="chapter")
+    trace1_hl = go.Scattergl(x=highlight_umap["x"], y=highlight_umap["y"], mode="markers", text=highlight_umap["labels"], marker=dict(color="red", size=10), name="Highlighted chapter")
     trace2 = go.Scattergl(x=df_pca["x"], y=df_pca["y"], mode="markers", text=df_pca["labels"], marker=dict(color="black"), name="chapter")
     trace2_hl = go.Scattergl(x=highlight_pca["x"], y=highlight_pca["y"], mode="markers", text=highlight_pca["labels"], marker=dict(color="red"), name="Highlighted chapter")
     fig.append_trace(trace1,1,1)
     fig.append_trace(trace1_hl,1,1)
     fig.append_trace(trace2,1,2)
     fig.append_trace(trace2_hl,1,2)
-    fig.update_layout(uirevision='constant')
+    fig.update_layout(uirevision='constant', autosize=True)
     return fig
 
 model_name = helpers.fetch_doc2vec_model_name()
