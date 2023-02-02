@@ -418,25 +418,3 @@ def run_server(fig):
 run_server(fig)
 
 print(f"Time taken to start server: {time.time() - start_time}")
-#fig.show()
-
-#fig.write_html("server/bar_chart_simple.html", auto_play=False, include_plotlyjs="cdn")
-
-
-'''
-edge_trace = go.Scatter(
-    x=edge_x, y=edge_y,
-    line=dict(width=0.5, color='#888'),
-    hoverinfo='none',
-    mode='lines')
-'''
-
-"""
-fig.add_trace(
-    go.Scatter(x=asd, y=asd, mode="markers")
-)
-
-
-fig.show()
-"""
-#print(word_distances)
