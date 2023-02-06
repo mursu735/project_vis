@@ -88,7 +88,7 @@ def get_base_wordcloud_fig():
     wordcloud_fig.update_yaxes(range=[0, 0.5], visible=False, showticklabels=False)
     return wordcloud_fig
 
-def reduce_dimensions(dv, tag_list):
+def reduce_dimensions(dv, tag_list, n_neighbors, min_dist):
     num_dimensions = 2  # final num dimensions (2D, 3D, etc)
     print(tag_list)
     # extract the words & their vectors, as numpy arrays
@@ -117,7 +117,7 @@ def reduce_dimensions(dv, tag_list):
     labels = np.asarray(lab)  # fixed-width numpy strings
 
     # reduce using t-SNE
-    red = UMAP(output_metric='haversine', n_components=num_dimensions, random_state=0, init='random', n_neighbors=15, min_dist=0.15)
+    red = UMAP(output_metric='haversine', n_components=num_dimensions, random_state=0, init='random', n_neighbors=n_neighbors, min_dist=min_dist)
     #red = TSNE(n_components=num_dimensions, random_state=0, perplexity=5)
     dbscan = perform_dbscan(vectors)
     vectors = red.fit(vectors) #red.fit_transform(vectors)
@@ -238,7 +238,7 @@ tags = natural_sort(tags)
 
 start_time = time.time()
 
-df_umap = reduce_dimensions(dv, tags)
+df_umap = reduce_dimensions(dv, tags, 15, 0.15)
 
 print(f"Time taken to create UMAP mapping: {time.time() - start_time}")
 start_time = time.time()
@@ -317,6 +317,14 @@ def run_server(fig):
             options=['Chapter', 'Cluster', 'Descriptive'],
         ),
 
+        html.Div([
+            "n_neighbors: ",
+            dcc.Input(id='n_neighbors', value=15, type='number'),
+            "min_dist: ",
+            dcc.Input(id='min_dist', value=0.1, type='number', min=0.01, max=1.0, step=0.01),
+            html.Button('Recalculate graph', n_clicks=0, id='calculate-graph'),
+        ]),
+
         dcc.Graph(
             id='example-graph',
             figure=fig
@@ -358,11 +366,20 @@ def run_server(fig):
         Output('selected-word', 'children'),
         Input('example-graph', 'clickData'),
         Input('reset-graph', 'n_clicks'),
-        Input("color-mode", "value"))
-    def display_click_data(clickData, n_clicks, mode):
+        Input('calculate-graph', 'n_clicks'),
+        Input("color-mode", "value"),
+        Input("n_neighbors", "value"),
+        Input("min_dist", "value"),)
+    def display_click_data(clickData, n_clicks, recalc, mode, n_neighbors, min_dist):
         global cur_chapter
+        global dv
+        global tags
+        global df_umap
+        global df_pca
         ctx = dash.callback_context
         clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
+        if clicked_element == "n_neighbors" or clicked_element == "min_dist":
+            dash.no_update, dash.no_update, [], [], "None"
         # Selected a new color scheme
         if clicked_element == "color-mode":
             if cur_chapter == "None":
@@ -376,6 +393,15 @@ def run_server(fig):
                 word_cluster = highlight_umap["cluster"].values[0]
                 words_in_cluster = df_umap[df_umap["cluster"] == word_cluster]["labels"]
                 return fig, dash.no_update, "\n".join(words_in_cluster), "\n".join(word_list), cur_chapter
+        if clicked_element == "calculate-graph":
+            start_time = time.time()
+            df_umap = reduce_dimensions(dv, tags, n_neighbors, min_dist)
+            print(f"Time taken to create UMAP mapping: {time.time() - start_time}")
+            start_time = time.time()
+            df_pca = reduce_pca(dv, tags)
+            print(f"Time taken to create PCA mapping: {time.time() - start_time}")
+            fig = get_plot(df_umap, df_pca, mode)
+            return fig, dash.no_update, [], [], "None"
         # Clicked on reset button
         if clicked_element == "reset-graph":
             cur_chapter = "None"
