@@ -57,7 +57,12 @@ def get_wordcloud(chapter):
     tfidf = pd.read_csv(f"./tf_idf/result_{res}.csv", sep=",", header=0, usecols=["term", "tfidf"]).set_index("term").to_dict()
     wordcloud = WordCloud(background_color="white", width=1200, height=900, max_words=20).generate_from_frequencies(tfidf["tfidf"])
     fig = px.imshow(wordcloud)
-    fig.update_layout(title=f"Word cloud for {chapter}", title_x=0.5)
+    title = "Word cloud for "
+    if res == "EPILOGUE":
+        title += "Epilogue"
+    else:
+        title += f"Chapter {number[1]}"
+    fig.update_layout(title=title, title_x=0.5)
     fig.update_xaxes(visible=False, showticklabels=False)
     fig.update_yaxes(visible=False, showticklabels=False)
     return fig
@@ -86,6 +91,31 @@ def get_base_wordcloud_fig():
 
     wordcloud_fig.update_xaxes(range=[0, 1], visible=False, showticklabels=False)
     wordcloud_fig.update_yaxes(range=[0, 0.5], visible=False, showticklabels=False)
+    return wordcloud_fig
+
+def get_base_wordcloud_fig2():
+    wordcloud_fig = go.Figure()
+    wordcloud_fig.add_trace(go.Scatter(
+        x=[0],
+        y=[0],
+        mode="markers",
+        marker=dict(opacity=0)))
+    im = Image.open("test_banner.png") # Can be many different formats.
+    wordcloud_fig.add_layout_image(
+            dict(
+                source=im,
+                xref="x",
+                yref="y",
+                x=0,
+                y=1,
+                sizex=1,
+                sizey=1,
+                sizing="stretch",
+                layer="above")
+    )
+
+    wordcloud_fig.update_xaxes(range=[0, 1], visible=False, showticklabels=False)
+    wordcloud_fig.update_yaxes(range=[0, 1], visible=False, showticklabels=False)
     return wordcloud_fig
 
 def reduce_dimensions(dv, tag_list, n_neighbors, min_dist):
@@ -356,6 +386,31 @@ def run_server(fig):
                 html.Pre(id='cluster-data')]))
             ]
         ),
+
+
+
+        html.Div([
+            html.H2(children='Wordcloud for chapters'),
+            "Input (chapter number or \"Epilogue\"): ",
+            dcc.Input(id='word-1', value='', type='text', style={"margin-left": "15px"}),
+            dcc.Input(id='word-2', value='', type='text', style={"margin-left": "15px"}),
+            html.Button('Recalculate', n_clicks=0, id='recalculate-wordcloud'),
+        ]),
+
+        html.Div(
+            children=[
+                dcc.Graph(
+                    id='wordcloud-below',
+                    figure=get_base_wordcloud_fig2(),
+                    style={'display': 'inline-block'}
+                ),
+                    dcc.Graph(
+                    id='wordcloud-below2',
+                    figure=get_base_wordcloud_fig2(),
+                    style={'display': 'inline-block'}
+                ),
+            ]
+        )
     ])
     
     @app.callback(
@@ -436,6 +491,34 @@ def run_server(fig):
 
         return dash.no_update, dash.no_update, [], [], "None"
         #return json.dumps(clickData, indent=2)
+
+    @app.callback(
+        Output('wordcloud-below', 'figure'),
+        Input('word-1', 'value'),
+        Input('recalculate-wordcloud', 'n_clicks'))
+    def display_wordcloud1(chapter, n_clicks):
+        ctx = dash.callback_context
+        clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
+        if clicked_element == "recalculate-wordcloud":
+            if chapter.isnumeric():
+                chapter = f"CHAPTER {chapter}"
+            return get_wordcloud(chapter)
+        else:
+            return dash.no_update
+
+    @app.callback(
+        Output('wordcloud-below2', 'figure'),
+        Input('word-2', 'value'),
+        Input('recalculate-wordcloud', 'n_clicks'))
+    def display_wordcloud2(chapter, n_clicks):
+        ctx = dash.callback_context
+        clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
+        if clicked_element == "recalculate-wordcloud":
+            if chapter.isnumeric():
+                chapter = f"CHAPTER {chapter}"
+            return get_wordcloud(chapter)
+        else:
+            return dash.no_update
 
     if __name__ == '__main__':
         app.run_server(debug=True)

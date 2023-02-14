@@ -410,7 +410,7 @@ def run_server(fig):
         global labels
         ctx = dash.callback_context
         clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
-        if clicked_element == "threshold" or clicked_element == "n_neighbors" or clicked_element == min_dist:
+        if clicked_element == "threshold" or clicked_element == "n_neighbors" or clicked_element == "min_dist":
             dash.no_update, prev_cluster, prev_chapter, prev_word
         if clicked_element == "color-mode" or clicked_element == "opacity-mode":
             if not lock_graph:
