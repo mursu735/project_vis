@@ -1,6 +1,7 @@
 import helpers
 import json
 import glob
+import math
 import gensim.models
 import gensim.downloader as api
 import plotly.graph_objects as go
@@ -41,6 +42,33 @@ def natural_sort(l):
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
 
+
+def get_selection_subplot(chapters):
+    rows = math.ceil(len(chapters) / 4)
+    fig = make_subplots(
+        rows=rows,
+        cols=4,
+        column_widths=[0.25, 0.25, 0.25, 0.25],
+        vertical_spacing=0.02,
+        subplot_titles=[f"Wordcloud for {chapter}" for chapter in chapters])
+    row = 1
+    col = 0
+    for chapter in chapters:
+        res = "EPILOGUE"
+        number = chapter.split(" ")
+        if len(number) > 1:
+            res = f"CHAPTER {number[1]}"
+        tfidf = pd.read_csv(f"./tf_idf/result_{res}.csv", sep=",", header=0, usecols=["term", "tfidf"]).set_index("term").to_dict()
+        wordcloud = WordCloud(background_color="white", width=800, height=600, max_words=20).generate_from_frequencies(tfidf["tfidf"])
+        fig_img = px.imshow(wordcloud)
+        fig.add_trace(fig_img.data[0], row=row, col=col+1)
+        col = (col + 1) % 4
+        if col == 0:
+            row += 1
+    fig.update_layout(height=rows * 600)
+    return fig
+
+
 def get_subplot_template():
     return make_subplots(
         rows=1,
@@ -57,12 +85,7 @@ def get_wordcloud(chapter):
     tfidf = pd.read_csv(f"./tf_idf/result_{res}.csv", sep=",", header=0, usecols=["term", "tfidf"]).set_index("term").to_dict()
     wordcloud = WordCloud(background_color="white", width=1200, height=900, max_words=20).generate_from_frequencies(tfidf["tfidf"])
     fig = px.imshow(wordcloud)
-    title = "Word cloud for "
-    if res == "EPILOGUE":
-        title += "Epilogue"
-    else:
-        title += f"Chapter {number[1]}"
-    fig.update_layout(title=title, title_x=0.5)
+    fig.update_layout(title=f"Word cloud for {chapter}", title_x=0.5)
     fig.update_xaxes(visible=False, showticklabels=False)
     fig.update_yaxes(visible=False, showticklabels=False)
     return fig
@@ -93,31 +116,6 @@ def get_base_wordcloud_fig():
     wordcloud_fig.update_yaxes(range=[0, 0.5], visible=False, showticklabels=False)
     return wordcloud_fig
 
-def get_base_wordcloud_fig2():
-    wordcloud_fig = go.Figure()
-    wordcloud_fig.add_trace(go.Scatter(
-        x=[0],
-        y=[0],
-        mode="markers",
-        marker=dict(opacity=0)))
-    im = Image.open("test_banner.png") # Can be many different formats.
-    wordcloud_fig.add_layout_image(
-            dict(
-                source=im,
-                xref="x",
-                yref="y",
-                x=0,
-                y=1,
-                sizex=1,
-                sizey=1,
-                sizing="stretch",
-                layer="above")
-    )
-
-    wordcloud_fig.update_xaxes(range=[0, 1], visible=False, showticklabels=False)
-    wordcloud_fig.update_yaxes(range=[0, 1], visible=False, showticklabels=False)
-    return wordcloud_fig
-
 def reduce_dimensions(dv, tag_list, n_neighbors, min_dist, eps, min_samples):
     num_dimensions = 2  # final num dimensions (2D, 3D, etc)
     print(tag_list)
@@ -133,15 +131,15 @@ def reduce_dimensions(dv, tag_list, n_neighbors, min_dist, eps, min_samples):
             number = 136
         else:
             number = int(split2[1])
-        if number not in descriptive_chapters:
-            asd = dv.get_vector(tag)
-            vec.append(asd)
-            lab.append(tag)
-            if number in descriptive_chapters:
-                descriptive.append(1)
-            else:
-                descriptive.append(0)
-            chapter.append(number)
+        #if number not in descriptive_chapters:
+        asd = dv.get_vector(tag)
+        vec.append(asd)
+        lab.append(tag)
+        if number in descriptive_chapters:
+            descriptive.append(1)
+        else:
+            descriptive.append(0)
+        chapter.append(number)
 
     vectors = np.asarray(vec)
     labels = np.asarray(lab)  # fixed-width numpy strings
@@ -220,7 +218,7 @@ def get_plot(df_umap, df_pca, mode):
 
     fig.append_trace(trace1,1,1)
     fig.append_trace(trace2,1,2)
-    fig.update_layout(uirevision='constant')
+    fig.update_layout(uirevision='constant', autosize=True)
     return fig
 
 def get_highlight_plot(mode, text):
@@ -236,7 +234,7 @@ def get_highlight_plot(mode, text):
     fig.append_trace(trace1_hl,1,1)
     fig.append_trace(trace2,1,2)
     fig.append_trace(trace2_hl,1,2)
-    fig.update_layout(uirevision='constant')
+    fig.update_layout(uirevision='constant', autosize=True)
     return fig
 
 model_name = helpers.fetch_doc2vec_model_name()
@@ -268,12 +266,12 @@ tags = natural_sort(tags)
 
 start_time = time.time()
 
-df_umap = reduce_dimensions(dv, tags, 15, 0.15, 0.5, 5)
+df_umap = reduce_dimensions(dv, tags, 15, 0.15, 0.1, 5)
 
 print(f"Time taken to create UMAP mapping: {time.time() - start_time}")
 start_time = time.time()
 
-df_pca = reduce_pca(dv, tags, 0.5, 5)
+df_pca = reduce_pca(dv, tags, 0.1, 5)
 
 print(f"Time taken to create PCA mapping: {time.time() - start_time}")
 
@@ -348,7 +346,7 @@ def run_server(fig):
         ),
 
         html.Div([
-            html.H2("UMAP controls"),
+            html.H4("UMAP controls"),
             "n_neighbors: ",
             dcc.Input(id='n_neighbors', value=15, type='number'),
             "min_dist: ",
@@ -356,7 +354,7 @@ def run_server(fig):
         ]),
 
         html.Div([
-            html.H2("DBSCAN controls"),
+            html.H4("DBSCAN controls"),
             "min_samples: ",
             dcc.Input(id='min_samples', value=5, type='number'),
             "eps: ",
@@ -374,92 +372,78 @@ def run_server(fig):
 
         html.Div(children=["Selected chapter", html.Pre(id='selected-word')]),
 
+
+        html.Div(children=[
+            dcc.Markdown("**Drag selection from right-hand graph**"),
+            dcc.Graph(
+                id='wordcloud-selection',
+                figure=wordcloud_fig
+            ),
+        ]),
+
+
         dcc.Graph(
             id='wordcloud-graph',
             figure=wordcloud_fig
         ),
 
-        dbc.Row(
-            [
-                dbc.Col(html.Div([dcc.Markdown("""
-                        **Click Data**
+        html.Div(className='row', children=[
+        html.Div([
+            dcc.Markdown("""
+                **Click Data**
 
-                        Words in the same chapter.
-                    """),
-                    html.Pre(id='click-data')])),
-                    
-                dbc.Col(html.Div([dcc.Markdown("""
-                    **Click Data**
-
-                    Words in the same cluster. 
-                """),
-                html.Pre(id='cluster-data')]))
-            ]
-        ),
-
-
+                Click on points in the graph.
+            """),
+            html.Pre(id='click-data'),
+        ], className='three columns'),
 
         html.Div([
-            html.H2(children='Wordcloud for chapters'),
-            "Input (chapter number or \"Epilogue\"): ",
-            dcc.Input(id='word-1', value='', type='text', style={"margin-left": "15px"}),
-            dcc.Input(id='word-2', value='', type='text', style={"margin-left": "15px"}),
-            html.Button('Recalculate', n_clicks=0, id='recalculate-wordcloud'),
-        ]),
+            dcc.Markdown("""
+                **Selection Data**
 
-        html.Div(
-            children=[
-                dcc.Graph(
-                    id='wordcloud-below',
-                    figure=get_base_wordcloud_fig2(),
-                    style={'display': 'inline-block'}
-                ),
-                    dcc.Graph(
-                    id='wordcloud-below2',
-                    figure=get_base_wordcloud_fig2(),
-                    style={'display': 'inline-block'}
-                ),
-            ]
-        )
+                Choose the lasso or rectangle tool in the graph's menu
+                bar and then select points in the graph.
+
+                Note that if `layout.clickmode = 'event+select'`, selection data also
+                accumulates (or un-accumulates) selected data if you hold down the shift
+                button while clicking.
+            """),
+            html.Pre(id='selected-data'),
+        ], className='three columns'),
+
+        html.Div([
+            dcc.Markdown("""
+                **Zoom and Relayout Data**
+
+                Click and drag on the graph to zoom or click on the zoom
+                buttons in the graph's menu bar.
+                Clicking on legend items will also fire
+                this event.
+            """),
+            html.Pre(id='relayout-data'),
+        ], className='three columns')
+    ])
+
     ])
     
     @app.callback(
         Output('example-graph', 'figure'),
         Output('wordcloud-graph', 'figure'),
-        Output('click-data', 'children'),
-        Output('cluster-data', 'children'),
         Output('selected-word', 'children'),
         Input('example-graph', 'clickData'),
         Input('reset-graph', 'n_clicks'),
-        Input('calculate-graph', 'n_clicks'),
         Input("color-mode", "value"),
         Input("n_neighbors", "value"),
         Input("min_dist", "value"),
         Input("min_samples", "value"),
         Input("eps", "value"),)
-    def display_click_data(clickData, n_clicks, recalc, mode, n_neighbors, min_dist, min_samples, eps):
+    def display_click_data(clickData, n_clicks, mode, n_neighbors, min_dist, min_samples, eps):
         global cur_chapter
-        global dv
-        global tags
         global df_umap
         global df_pca
         ctx = dash.callback_context
         clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
-        if clicked_element == "n_neighbors" or clicked_element == "min_dist":
-            dash.no_update, dash.no_update, [], [], "None"
-        # Selected a new color scheme
-        if clicked_element == "color-mode":
-            if cur_chapter == "None":
-                fig = get_plot(df_umap, df_pca, mode)
-                return fig, dash.no_update, [], [], "None"
-            else:
-                fig = get_highlight_plot(mode, cur_chapter)
-                chapter = df_umap[df_umap["labels"] == cur_chapter]["chapter"].values[0]
-                highlight_umap = df_umap.loc[df_umap['labels'] == cur_chapter]
-                word_list = df_umap[df_umap["chapter"] == chapter]["labels"]
-                word_cluster = highlight_umap["cluster"].values[0]
-                words_in_cluster = df_umap[df_umap["cluster"] == word_cluster]["labels"]
-                return fig, dash.no_update, "\n".join(words_in_cluster), "\n".join(word_list), cur_chapter
+        # Recalculate graph with new parameters
         if clicked_element == "calculate-graph":
             start_time = time.time()
             df_umap = reduce_dimensions(dv, tags, n_neighbors, min_dist, min_samples, eps)
@@ -468,12 +452,25 @@ def run_server(fig):
             df_pca = reduce_pca(dv, tags, min_samples, eps)
             print(f"Time taken to create PCA mapping: {time.time() - start_time}")
             fig = get_plot(df_umap, df_pca, mode)
-            return fig, dash.no_update, [], [], "None"
+            return fig, dash.no_update, "None"
+        # Selected a new color scheme
+        if clicked_element == "color-mode":
+            if cur_chapter == "None":
+                fig = get_plot(df_umap, df_pca, mode)
+                return fig, dash.no_update, "None"
+            else:
+                fig = get_highlight_plot(mode, cur_chapter)
+                chapter = df_umap[df_umap["labels"] == cur_chapter]["chapter"].values[0]
+                highlight_umap = df_umap.loc[df_umap['labels'] == cur_chapter]
+                word_list = df_umap[df_umap["chapter"] == chapter]["labels"]
+                word_cluster = highlight_umap["cluster"].values[0]
+                words_in_cluster = df_umap[df_umap["cluster"] == word_cluster]["labels"]
+                return fig, dash.no_update, "\n".join(words_in_cluster), "\n".join(word_list), cur_chapter
         # Clicked on reset button
         if clicked_element == "reset-graph":
             cur_chapter = "None"
             fig = get_plot(df_umap, df_pca, mode)
-            return fig, get_base_wordcloud_fig(), [], [], "None"
+            return fig, get_base_wordcloud_fig(), "None"
         # Clicked on the graph
         if isinstance(clickData, dict):
             fig = get_subplot_template()
@@ -499,38 +496,38 @@ def run_server(fig):
                 word_cluster = highlight_umap["cluster"].values[0]
                 words_in_cluster = df_umap[df_umap["cluster"] == word_cluster]["labels"]
                 cur_chapter = text
-                return fig, wordcloud, "\n".join(words_in_cluster), "\n".join(word_list), text
+                return fig, wordcloud, text
 
-        return dash.no_update, dash.no_update, [], [], "None"
+        return dash.no_update, dash.no_update, "None"
         #return json.dumps(clickData, indent=2)
 
     @app.callback(
-        Output('wordcloud-below', 'figure'),
-        Input('word-1', 'value'),
-        Input('recalculate-wordcloud', 'n_clicks'))
-    def display_wordcloud1(chapter, n_clicks):
-        ctx = dash.callback_context
-        clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
-        if clicked_element == "recalculate-wordcloud":
-            if chapter.isnumeric():
-                chapter = f"CHAPTER {chapter}"
-            return get_wordcloud(chapter)
-        else:
-            return dash.no_update
+    Output('relayout-data', 'children'),
+    Input('example-graph', 'relayoutData'))
+    def display_relayout_data(relayoutData):
+        #if not relayoutData is None and "xaxis2.range[0]" in relayoutData:
+            #print(relayoutData["xaxis2.range[0]"])
+        return json.dumps(relayoutData, indent=2)
 
     @app.callback(
-        Output('wordcloud-below2', 'figure'),
-        Input('word-2', 'value'),
-        Input('recalculate-wordcloud', 'n_clicks'))
-    def display_wordcloud2(chapter, n_clicks):
+    Output('wordcloud-selection', 'figure'),
+    Input('example-graph', 'selectedData'),
+    Input('reset-graph', 'n_clicks'),)
+    def display_selected_data(selectedData, n_clicks):
         ctx = dash.callback_context
         clicked_element = ctx.triggered[0]["prop_id"].split(".")[0]
-        if clicked_element == "recalculate-wordcloud":
-            if chapter.isnumeric():
-                chapter = f"CHAPTER {chapter}"
-            return get_wordcloud(chapter)
-        else:
-            return dash.no_update
+        if clicked_element == "reset-graph":
+            return get_base_wordcloud_fig()
+        if not selectedData is None and "points" in selectedData and len(selectedData["points"]) > 0:
+            #print(selectedData["points"])
+            chapters = []
+            # When using 3D plot on the other side, it has no ability for selection, so we don't need to worry which graph where are selecting from.
+            # This should be kept in mind when using multiple 2D plots
+            for chapter in selectedData["points"]:
+                chapters.append(chapter["text"])
+            return get_selection_subplot(chapters)
+        return dash.no_update
+
 
     if __name__ == '__main__':
         app.run_server(debug=True)
@@ -539,3 +536,25 @@ def run_server(fig):
 run_server(fig)
 
 print(f"Time taken to start server: {time.time() - start_time}")
+#fig.show()
+
+#fig.write_html("server/bar_chart_simple.html", auto_play=False, include_plotlyjs="cdn")
+
+
+'''
+edge_trace = go.Scatter(
+    x=edge_x, y=edge_y,
+    line=dict(width=0.5, color='#888'),
+    hoverinfo='none',
+    mode='lines')
+'''
+
+"""
+fig.add_trace(
+    go.Scatter(x=asd, y=asd, mode="markers")
+)
+
+
+fig.show()
+"""
+#print(word_distances)
