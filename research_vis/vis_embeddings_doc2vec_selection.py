@@ -58,9 +58,10 @@ def get_selection_subplot(chapters):
         number = chapter.split(" ")
         if len(number) > 1:
             res = f"CHAPTER {number[1]}"
-        tfidf = pd.read_csv(f"./tf_idf/result_{res}.csv", sep=",", header=0, usecols=["term", "tfidf"]).set_index("term").to_dict()
-        wordcloud = WordCloud(background_color="white", width=800, height=600, max_words=20).generate_from_frequencies(tfidf["tfidf"])
-        fig_img = px.imshow(wordcloud)
+        #tfidf = pd.read_csv(f"./tf_idf/result_{res}.csv", sep=",", header=0, usecols=["term", "tfidf"]).set_index("term").to_dict()
+        #wordcloud = WordCloud(background_color="white", width=800, height=600, max_words=20).generate_from_frequencies(tfidf["tfidf"])
+        im = Image.open(f"./wordcloud_images/{res}.png")
+        fig_img = px.imshow(im)
         fig.add_trace(fig_img.data[0], row=row, col=col+1)
         col = (col + 1) % 4
         if col == 0:
@@ -82,12 +83,13 @@ def get_wordcloud(chapter):
     number = chapter.split(" ")
     if len(number) > 1:
         res = f"CHAPTER {number[1]}"
-    tfidf = pd.read_csv(f"./tf_idf/result_{res}.csv", sep=",", header=0, usecols=["term", "tfidf"]).set_index("term").to_dict()
-    wordcloud = WordCloud(background_color="white", width=1200, height=900, max_words=20).generate_from_frequencies(tfidf["tfidf"])
-    fig = px.imshow(wordcloud)
+    #tfidf = pd.read_csv(f"./tf_idf/result_{res}.csv", sep=",", header=0, usecols=["term", "tfidf"]).set_index("term").to_dict()
+    im = Image.open(f"./wordcloud_images/{res}.png")
+    #wordcloud = WordCloud(background_color="white", width=1200, height=900, max_words=20).generate_from_frequencies(tfidf["tfidf"])
+    fig = px.imshow(im)
     fig.update_layout(title=f"Word cloud for {chapter}", title_x=0.5)
-    fig.update_xaxes(visible=False, showticklabels=False)
-    fig.update_yaxes(visible=False, showticklabels=False)
+    #fig.update_xaxes(visible=False, showticklabels=False)
+    #fig.update_yaxes(visible=False, showticklabels=False)
     return fig
     #print(chapter)
 
@@ -374,7 +376,7 @@ def run_server(fig):
 
 
         html.Div(children=[
-            dcc.Markdown("**Drag selection from right-hand graph**"),
+            dcc.Markdown("**Drag selection from right-hand graph, color indicates chapter with highest tf-idf for that word (same colorscale as the graph)**"),
             dcc.Graph(
                 id='wordcloud-selection',
                 figure=wordcloud_fig
