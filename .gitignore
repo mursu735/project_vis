@@ -9,3 +9,4 @@ doc2vec-model*
 Binary_classification/*.csv
 Binary_classification/Training_data/*.csv
 tf_idf/
+wordcloud_images/
