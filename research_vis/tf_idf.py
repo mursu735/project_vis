@@ -58,6 +58,8 @@ def separate_text_to_chapters():
     #print(text)
     # If endline, add text line to chapter dict
     for line in text:
+        if "!!!!!!!!!!!!END HERE!!!!!!!!!!!!!!!!!!" in line:
+            break
         # Chapter changes
         if (re.match("(^CHAPTER)|(^Epilogue)", line)):
             line = line.replace("\n", "")
@@ -83,6 +85,9 @@ def separate_text_to_chapters():
 directory_path = "./Chapters/"
 if not os.path.exists(directory_path):
     os.mkdir(directory_path)
+
+files = os.listdir()
+if not ("EPILOGUE.txt" in files):
     separate_text_to_chapters()
 
 text_files = glob.glob(f"{directory_path}/*.txt")
@@ -93,7 +98,7 @@ text_titles = [Path(text).stem for text in text_files]
 
 tfidf_vector = tfidf_vectorizer.fit_transform(text_files)
 
-tfidf_df = pd.DataFrame(tfidf_vector.toarray(), index=text_titles, columns=tfidf_vectorizer.get_feature_names())
+tfidf_df = pd.DataFrame(tfidf_vector.toarray(), index=text_titles, columns=tfidf_vectorizer.get_feature_names_out())
 
 tfidf_df = tfidf_df.sort_index().round(decimals=2)
 

@@ -242,7 +242,6 @@ def get_highlight_plot(mode, text):
 model_name = helpers.fetch_doc2vec_model_name()
 
 #print(model_name)
-
 new_model = gensim.models.Doc2Vec.load(f"{model_name}")
 #wv = api.load('word2vec-google-news-300')
 #labels = np.asarray(wv.index_to_key[:500])

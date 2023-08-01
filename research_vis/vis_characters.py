@@ -16,7 +16,7 @@ text_files = [file for file in text_files if "CHAPTER" in file or "Epilogue" in 
 res = {}
 
 for chapter in text_files:
-    text = open(chapter).read()
+    text = open(chapter, encoding="utf8").read()
     current = {}
     for character in characters:
         names = character.split("/")
